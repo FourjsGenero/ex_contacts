@@ -19,21 +19,23 @@ use the contact database of the mobile device.
 
 ### Components
 
-1. Server: the database creation program
-2. Server: the configuration program to define app users and data filters
-3. Server: the dbsync server program implementing the REST Web Service
-3. Mobile: the contacts app (for Android or iOS)
+1. Mobile:
+  * the contacts app (for Android or iOS)
+2. Backend:
+  * the database creation program
+  * the configuration program to define app users and data filters
+  * the dbsync server program implementing the REST Web Service
 
 
 ### Key features
 
 1. Optimized DB Synchronization process:
-** based on timestamp modification flags
-** only modifed contact records are sent
-** does not send contact photo data if not needed
-** does not send contact notes details if not needed
-** data filter can be defined per users (to load only contacts from a given city or country)
-** return receipt mechanism to make sure mobile app has updated local database
+  * based on timestamp modification flags
+  * only modifed contact records are sent
+  * does not send contact photo data if not needed
+  * does not send contact notes details if not needed
+  * data filter can be defined per users (to load only contacts from a given city or country)
+  * return receipt mechanism to make sure mobile app has updated local database
 2. DB Synchronization can be encrypted over HTTPS, using JSON or XML format.
 3. Server programs can be executed through GAS for load balancing.
 4. App users can protect their login with a password.
@@ -162,7 +164,9 @@ to get load balancing.
 
 To check if the server is running, open a web browser and enter followin URL:
 
-   http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
+```
+http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
+```
 
 Note: The server program can automatically query the google geolocalization service
 to set GPS coordinates from the contacts addresses. In order to enable this
@@ -174,20 +178,24 @@ Then start the dbsync_contact_server program with the -k <google-api-key> option
 
 1. Install GAS and set the environment for GAS.
 2. Create the .xcf file for the server program (see dbsync_contact_server.xcf)
-* Before starting the GAS, following environment variables must be defined in the .xcf file:
-** LC_ALL=en_US.UTF-8
-** FGL_LENGTH_SEMANTICS=CHAR
-** LD_LIBRARY_PATH to DB client used
-** FGLLDPATH to find modules in ./common
-** Put the correct path to the dbsync server program (<PATH>)
-** Define the parameters for the dbsync server program (<PARAMETERS>)
+   Following environment variables must be defined in the .xcf file:
+    * LC_ALL=en_US.UTF-8
+    * FGL_LENGTH_SEMANTICS=CHAR
+    * LD_LIBRARY_PATH to DB client used
+    * FGLLDPATH to find modules in ./common
+    * Put the correct path to the dbsync server program (<PATH>)
+    * Define the parameters for the dbsync server program (<PARAMETERS>)
 3. Copy the .xcf file to $FGLASDIR/appdata/services
 4. Start the GAS (httpdispatch)
 5. Check the GAS config with a browser:
-   http://localhost:6394/ws/r/dbsync_contact_server/mobile/dbsync/status
-If the browser does no show a welcome page, check the GAS logs.
+ ```
+ http://localhost:6394/ws/r/dbsync_contact_server/mobile/dbsync/status
+ ```
+ If the browser does no show a welcome page, check the GAS logs.
 6. Check with the application on the mobile device, by entering the URL:
-   http://<server_host>:6394/ws/r/dbsync_contact_server
+ ```
+ http://<server_host>:6394/ws/r/dbsync_contact_server
+ ```
 
 
 ## Setup the mobile application
@@ -329,28 +337,29 @@ After compiling server programs and deploying the mobile app:
 
 * Start the server program dbsync_contact_server is started.
 * Configure the users with the server_config program.
-** Add users if needed.
-** Define data filters.
+  * Add users if needed.
+  * Define data filters.
 * Make sure your mobile devices is one the same Wifi as the server.
 * Start the app on the mobile device.
 * At first start, the app will ask for config settings.
-** Define the server Host IP address
-** Define the port if you have changed it on the server side.
-** Define the user id (ted, mike or max are predefined)
-** Configure the GAS settings if the server program is behing GAS.
-** Tap the "Test" button to see if the connection can be established.
-** Tap OK to save and close.
+  * Define the server Host IP address
+  * Define the port if you have changed it on the server side.
+  * Define the user id (ted, mike or max are predefined)
+  * Configure the GAS settings if the server program is behing GAS.
+  * Tap the "Test" button to see if the connection can be established.
+  * Tap OK to save and close.
 * First synchronization should occur.
 * Modify, add, delete contacts.
 * To sync, tap "Options" + "Synchronize".
 * Start the app in a second device with a different user.
 * If data becomes de-synchronized for some reason, perform a full sync with "Options" + "More" + "Full sync".
-* Using GPS / localization feature
-** The server program must have been started with a Google API Key to use geolocation services.
-** Associate the app user defined by the user id to a contact (yourself): Tap on a contact to modify it, "Options" + "Bind user", validate.
-** In main list, try "Options" + "Localize" to get the map.
-** The device must have GPS activated.
-** When a contact is modified and synchronized, the server program returns the position from the contact address.
+* Using GPS / localization feature:
+  * The server program must have been started with a Google API Key to use geolocation services.
+  * Associate the app user defined by the user id to a contact (yourself):
+    Tap on a contact to modify it, "Options" + "Bind user", validate.
+  * In main list, try "Options" + "Localize" to get the map.
+  * The device must have GPS activated.
+  * When a contact is modified and synchronized, the server program returns the position from the contact address.
 
 ## Todo list
 
