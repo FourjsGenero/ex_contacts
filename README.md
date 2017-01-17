@@ -28,12 +28,12 @@ use the contact database of the mobile device.
 ### Key features
 
 1. Optimized DB Synchronization process:
-..* based on timestamp modification flags
-..* only modifed contact records are sent
-..* does not send contact photo data if not needed
-..* does not send contact notes details if not needed
-..* data filter can be defined per users (to load only contacts from a given city or country)
-..* return receipt mechanism to make sure mobile app has updated local database
+** based on timestamp modification flags
+** only modifed contact records are sent
+** does not send contact photo data if not needed
+** does not send contact notes details if not needed
+** data filter can be defined per users (to load only contacts from a given city or country)
+** return receipt mechanism to make sure mobile app has updated local database
 2. DB Synchronization can be encrypted over HTTPS, using JSON or XML format.
 3. Server programs can be executed through GAS for load balancing.
 4. App users can protect their login with a password.
@@ -174,13 +174,13 @@ Then start the dbsync_contact_server program with the -k <google-api-key> option
 
 1. Install GAS and set the environment for GAS.
 2. Create the .xcf file for the server program (see dbsync_contact_server.xcf)
-..* Following environment variables must be defined before starting the GAS or in the .xcf file with <ENVIRONMENT_VARIABLE> elements:
-...* LC_ALL=en_US.UTF-8
-...* FGL_LENGTH_SEMANTICS=CHAR
-...* LD_LIBRARY_PATH to DB client used
-...* FGLLDPATH to find modules in ./common
-...* Put the correct path to the dbsync server program (<PATH>)
-...* Define the parameters for the dbsync server program (<PARAMETERS>)
+* Before starting the GAS, following environment variables must be defined in the .xcf file:
+** LC_ALL=en_US.UTF-8
+** FGL_LENGTH_SEMANTICS=CHAR
+** LD_LIBRARY_PATH to DB client used
+** FGLLDPATH to find modules in ./common
+** Put the correct path to the dbsync server program (<PATH>)
+** Define the parameters for the dbsync server program (<PARAMETERS>)
 3. Copy the .xcf file to $FGLASDIR/appdata/services
 4. Start the GAS (httpdispatch)
 5. Check the GAS config with a browser:
