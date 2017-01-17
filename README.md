@@ -2,6 +2,48 @@
 
 ## Description
 
+### Introduction
+
+This Genero BDL demo shows how to implement mobile / server database
+synchronization with a REST Web Service.
+
+The mobile app has its own local database, and can share contact data
+with other mobile apps throught the central database program.
+
+Allow user/contact location with Google geolocation services to show
+a map with contacts nearby, based on the contact address.
+
+Note that the contact database of this demo is isolated: it does not
+use the contact database of the mobile device.
+
+
+### Components
+
+1. Server: the database creation program
+2. Server: the configuration program to define app users and data filters
+3. Server: the dbsync server program implementing the REST Web Service
+3. Mobile: the contacts app (for Android or iOS)
+
+
+### Key features
+
+1. Optimized DB Synchronization process:
+..* based on timestamp modification flags
+..* only modifed contact records are sent
+..* does not send contact photo data if not needed
+..* does not send contact notes details if not needed
+..* data filter can be defined per users (to load only contacts from a given city or country)
+..* return receipt mechanism to make sure mobile app has updated local database
+2. DB Synchronization can be encrypted over HTTPS, using JSON or XML format.
+3. Server programs can be executed through GAS for load balancing.
+4. App users can protect their login with a password.
+5. Conflicts are managed on the server side, sync report displayed if conflicts.
+6. Users can be activated/deactivated from server config program.
+8. In case of de-sync, can do a full-sync to cleanup and retrieve all contacts from server.
+9. Automatic refresh with timeout config.
+10. Send GPS coordinates for current user.
+
+
 ## Requirements
 
 * Database server: Tested with Informix 11.20 and PostgreSQL 9.3.
@@ -304,7 +346,7 @@ After compiling server programs and deploying the mobile app:
 * Start the app in a second device with a different user.
 * If data becomes de-synchronized for some reason, perform a full sync with "Options" + "More" + "Full sync".
 * Using GPS / localization feature
-** The server program must have been started with a Google API Key to use Google maps services.
+** The server program must have been started with a Google API Key to use geolocation services.
 ** Associate the app user defined by the user id to a contact (yourself): Tap on a contact to modify it, "Options" + "Bind user", validate.
 ** In main list, try "Options" + "Localize" to get the map.
 ** The device must have GPS activated.
