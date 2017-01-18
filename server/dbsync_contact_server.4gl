@@ -24,7 +24,7 @@ MAIN
        EXIT PROGRAM 1
     END IF
 
-    LET port = NULL
+    LET port = 8090 -- For dev
     CALL libutil.get_dbc_args()
          RETURNING dbname, dbsrce, dbdriv, uname, upswd
     FOR i = 1 TO num_args()
