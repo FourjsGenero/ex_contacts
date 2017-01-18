@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Project defaultApplication="-2088915982" gstVersion="3001d" version="3.1">
+<Project defaultApplication="-770139336" gstVersion="3001d" version="3.1">
   <Settings>
     <DynamicProperties version="2">
       <DynamicProperty description="Accent color (Android 5.0 and later)" initialValue="#9575CD" isDefaultInherited="false" isHidden="false" label="Accent color" name="gma-accent-color" readOnly="false" type="COLOR"/>
@@ -80,10 +80,10 @@
       <File excludeFromCompilation="true" excludeFromLink="true" filePath="common/contacts.sch"/>
       <File excludeFromCompilation="true" excludeFromLink="true" filePath="server/contacts.sqlite"/>
     </Library>
-    <Application binaryName="dbsync_contact_server" commandLineArguments="-d contacts -o dbmsqt -f contacts.sqlite -p 6394 -v" dependencies="296203105||-158894972" description="DBSync Web Services program" id="-770139336" label="dbsync_contact_server">
+    <Application binaryName="dbsync_contact_server" commandLineArguments="-d contacts -o dbmsqt -f contacts.sqlite -p 8090 -v" dependencies="296203105||-158894972" description="DBSync Web Services program" id="-770139336" label="dbsync_contact_server">
       <File excludeFromLink="true" filePath="server/dbsync_contact_server.4gl"/>
     </Application>
-    <Application binaryName="mkcontacts_main" commandLineArguments="-d contacts -s -o dbmsqt -f $(CONTACTS_DBFILE)" dependencies="-158894972||296203105" description="Server database creation program" id="-1718480096" label="mkcontacts_main">
+    <Application binaryName="mkcontacts_main" commandLineArguments="<your db goes here>" dependencies="-158894972||296203105" description="Server database creation program" id="-1718480096" label="mkcontacts_main">
       <File filePath="server/mkcontacts_main.4gl"/>
     </Application>
     <Application binaryName="server_config" commandLineArguments="-d contacts -o dbmsqt -f contacts.sqlite" dependencies="296203105||-158894972" description="Central DB config program" id="-2088915982" label="server_config">

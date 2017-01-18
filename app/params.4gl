@@ -164,8 +164,8 @@ PUBLIC FUNCTION load_settings()
        LET parameters.user_id = param_defaults.user_id
        LET parameters.cdb_format = "json"
        LET parameters.cdb_protocol = "http"
-       LET parameters.cdb_host = "localhost"
-       LET parameters.cdb_port = 6394
+       LET parameters.cdb_host = "10.0.2.2" -- (for Android Emulator)
+       LET parameters.cdb_port = 8090 -- 6394 when using GAS
        LET parameters.cdb_gas = "N"
        LET parameters.cdb_connector = NULL
        LET parameters.cdb_group = NULL

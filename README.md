@@ -88,7 +88,7 @@ $ createdb -h localhost contacts --encoding "utf-8"
     * **Warning**: On Windows you need to set LANG=.fglutf8 (remove LC_ALL)
   * Set FGL_LENGTH_SEMANTICS=CHAR to get char length semantics
 4. Build the server programs.
-5. Create your server database if needed (you can also use the ready-to-use SQLite database)
+5. Create server db tables: *Skip this when using the default SQLite DB server side*
   * Go to the *mkcontacts_main* application node.
   * Edit the command line arguments in order to use your database.
   * Run the *mkcontacts_main* program to create the database tables.
@@ -227,12 +227,12 @@ Then start the dbsync_contact_server program with the -k <google-api-key> option
 4. Start the GAS (httpdispatch)
 5. Check the GAS config with a browser:
  ```
- http://localhost:6394/ws/r/dbsync_contact_server/mobile/dbsync/status
+ http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
  ```
  If the browser does no show a welcome page, check the GAS logs.
 6. Check with the application on the mobile device, by entering the URL:
  ```
- http://<server_host>:6394/ws/r/dbsync_contact_server
+ http://<server_host>:<port>/ws/r/dbsync_contact_server
  ```
 
 
