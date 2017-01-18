@@ -86,7 +86,7 @@
     <Application binaryName="mkcontacts_main" commandLineArguments="-d contacts -s -o dbmsqt -f $(CONTACTS_DBFILE)" dependencies="-158894972||296203105" description="Server database creation program" id="-1718480096" label="mkcontacts_main">
       <File filePath="server/mkcontacts_main.4gl"/>
     </Application>
-    <Application binaryName="server_config" commandLineArguments="-d contacts -o dbmsqt -f /tmp/contacts.sqlite" dependencies="296203105||-158894972" description="Central DB config program" id="-2088915982" label="server_config">
+    <Application binaryName="server_config" commandLineArguments="-d contacts -o dbmsqt -f contacts.sqlite" dependencies="296203105||-158894972" description="Central DB config program" id="-2088915982" label="server_config">
       <File excludeFromLink="true" filePath="server/server_config.4gl"/>
       <File filePath="server/users.per"/>
     </Application>
