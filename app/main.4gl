@@ -97,25 +97,19 @@ PRIVATE FUNCTION open_database()
     DEFINE basedir, dbfile, connstr VARCHAR(256)
     -- source is defined as module variable, so we can delete it for tests
     LET dbfile = "contacts.dbs"
-    IF NOT base.Application.isMobile() THEN
+    IF base.Application.isMobile() THEN
+        LET basedir = os.Path.pwd() -- Documents dir
+        LET source = os.Path.join(basedir, dbfile)
+    ELSE -- In development mode on server
         LET basedir = fgl_getenv("USERDBDIR")
         IF basedir IS NULL THEN
            LET param_defaults.user_id = "max"
-           LET basedir = os.Path.join(os.Path.pwd(),
-                                      SFMT("dbdir_%1",param_defaults.user_id) )
-           DISPLAY "WARNING: USERDBDIR defaults to: ", basedir
-           -- Create database dir if it does not exist...
-           IF NOT os.Path.exists(basedir) THEN
-              IF NOT os.Path.mkdir(basedir) THEN
-                 DISPLAY "ERROR: Could not create ", basedir
-                 EXIT PROGRAM 1
-              END IF
-           END IF
+           DISPLAY "WARNING: USERDBDIR not set, using current dir for dbfile"
+           LET source = dbfile
+        ELSE
+           LET source = os.Path.join(basedir, dbfile)
         END IF
-    ELSE -- on mobile
-        LET basedir = os.Path.pwd() -- Documents dir
     END IF
-    LET source = os.Path.join(basedir, dbfile)
     LET connstr = SFMT("contacts+source='%1'", source)
     IF NOT base.Application.isMobile() THEN
        LET connstr = connstr, ",driver='dbmsqt'"
