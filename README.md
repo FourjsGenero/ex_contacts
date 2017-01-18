@@ -53,17 +53,17 @@ use the contact database of the mobile device.
 * Genero Mobile (GMI/GMA) >= 1.20
 * GNU make utility or Genero Studio >= 3.00
 
-## Setup the server side
 
-### Create a database
+## The server database (UTF-8)
 
-Server program needs real multi-user DB like Informix or PostgreSQL,
-however, for testing purpose you can use SQLite by default on the
-server side.
+For production, it is better to use a real multi-user DB such as Informix
+or PostgreSQL.
 
-Create a UTF-8 database on the server:
+However, for testing purpose, you can use the default SQLite database,
+which is read-to-use, in server/contacts.sqlite.
 
-Informix:
+To create a UTF-8 database on the server with Informix:
+
 ```
 $ echo $DB_LOCALE
 en_us.utf8
@@ -71,17 +71,37 @@ $ dbaccess - -
 > create database contacts with buffered log;
 ```
 
-PostgreSQL:
+To create a UTF-8 database on the server with PostgreSQL:
+
 ```
 $ createdb -h localhost contacts --encoding "utf-8"
 ```
 
-SQLite: Already created: server/contacts.sqlite
+## Using Genero Studio projects
+
+### Server-side programs
+
+* Open a first Studio instance and load the server_progs.4pw project file.
+* Configure UTF-8 locale with char length semantics (build rules env vars)
+  Warning: n Windows you need to change LANG to .fglutf8
+* Build the server programs.
+* Create your server database if needed (you can also use the ready-to-use SQLite database)
+  1. Go to the mkcontacts_main application node.
+  1. Edit the command line arguments in order to use your database.
+  2. Execute the mkcontacts_main program to create the database tables.
+* Execute the dbsync_contact_server program.
+
+### Contacts app for mobile
+
+* Open a second Studio instance and load the contacts.4pw project file.
+* Configure UTF-8 locale with char length semantics (build rules env vars) (on Windows you need to change LANG to .fglutf8)
+* Configure the environment for Android or iOS.
+* Build the app and deploy the contacts app.
 
 
-### Genero BDL environment
+## Using command line (Linux)
 
-Server part needs real multi-user DB like Informix or PostgreSQL.
+### Setup Genero BDL environment
 
 Setup Genero BDL 3.00+ environment
 
@@ -119,8 +139,10 @@ $ make clean all
 If you want to create your own database instead of using the default
 SQLite database provided in server/contacts.sqlite, you must create
 the database tables and fill with sample data.
+
 The sample data is created for 3 users: mike, max, ted ...
-See mkcontacts.4gl for details.
+
+See mkcontacts.4gl source code for details.
 
 To create the database tables:
 
@@ -198,9 +220,7 @@ Then start the dbsync_contact_server program with the -k <google-api-key> option
  ```
 
 
-## Setup the mobile application
-
-### Compile the application
+### Compile the mobile application
 
 Setup GMA or GMI app build tool.
 
@@ -312,25 +332,6 @@ app settings.
 http://developer.android.com/tools/devices/emulator.html
 
 
-## Using Genero Studio projects
-
-### Server-side programs
-
-* Open a first Studio instance and load the server_progs.4pw project file.
-* Configure UTF-8 locale with char length semantics (build rules env vars) (on Windows you need to change LANG to .fglutf8)
-* Build the server programs.
-* Edit the command line arguments if needed in order to use your database.
-* Execute the mkcontacts_main program to create the database tables.
-* Execute the dbsync_contact_server program.
-
-### Contacts app for mobile
-
-* Open a second Studio instance and load the contacts.4pw project file.
-* Configure UTF-8 locale with char length semantics (build rules env vars) (on Windows you need to change LANG to .fglutf8)
-* Configure the environment for Android or iOS.
-* Build the app and deploy the contacts app.
-
-
 ## Usage
 
 After compiling server programs and deploying the mobile app:
@@ -360,6 +361,7 @@ After compiling server programs and deploying the mobile app:
   * In main list, try "Options" + "Localize" to get the map.
   * The device must have GPS activated.
   * When a contact is modified and synchronized, the server program returns the position from the contact address.
+
 
 ## Todo list
 
