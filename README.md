@@ -352,23 +352,24 @@ http://developer.android.com/tools/devices/emulator.html
 
 After compiling server programs and deploying the mobile app:
 
-* Start the server program dbsync_contact_server is started.
-* Configure the users with the server_config program.
+* Start the server program *dbsync_contact_server*.
+* Configure the users with the *server_config* program.
   * Add users if needed.
   * Define data filters.
 * Make sure your mobile devices is on the same Wifi as the server.
 * Start the app on the mobile device.
 * At first start, the app will ask for config settings.
-  * Define the server Host IP address
-  * Define the port if you have changed it on the server side.
-  * Define the user id (ted, mike or max are predefined)
+  * Define the server Host IP address (10.0.2.2 in Android emulator)
+  * Define the port, if you have changed it on the server side (default is 8090)
+  * Define the user id (ted, mike or max are predefined users in sample db)
   * Configure the GAS settings if the server program is behind GAS.
   * Tap the "Test" button to see if the connection can be established.
   * Tap OK to save and close.
-* First synchronization should occur.
+* First synchronization will occur to retrieve all contacts from server.
 * Modify, add, delete contacts.
 * To sync, tap "Options" + "Synchronize".
 * Start the app in a second device with a different user.
+* Do modifications in both devices, synchronize and see how conflicts are managed.
 * If data becomes de-synchronized for some reason, perform a full sync with "Options" + "More" + "Full sync".
 * Using GPS / localization feature:
   * The server program must have been started with a Google API Key to use geolocation services.
