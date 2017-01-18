@@ -1,19 +1,11 @@
 .SUFFIXES: .42s .42f .42m .42r .str .per .4gl .msg .iem
 
 ifdef FGLLDPATH
-ifndef WINDIR
-    FGLENV1 = FGLLDPATH=$(FGLLDPATH)
-else
-    FGLENV1 = set FGLLDPATH=$(FGLLDPATH) &&
-endif
+FGLENV1 = FGLLDPATH=$(FGLLDPATH)
 endif
 
 ifdef FGLDBPATH
-ifndef WINDIR
-    FGLENV2 = FGLDBPATH=$(FGLDBPATH)
-else
-    FGLENV2 = set FGLDBPATH=$(FGLDBPATH) &&
-endif
+FGLENV2 = FGLDBPATH=$(FGLDBPATH)
 endif
 
 FGLENV = $(FGLENV1) $(FGLENV2)
@@ -24,16 +16,9 @@ FGLRUN   = $(FGLENV) fglrun
 FGLFORM  = fglform -M
 FGLMKSTR = fglmkstr
 
-ifndef WINDIR
-  MKDIR = mkdir
-  CP    = cp
-  RM    = rm -f
-else
-  MKDIR = mkdir
-  CP    = copy /Y
-  RM    = -DEL /q
-  MAKE  = nmake -nologo -f makefile.msc
-endif
+MKDIR = mkdir
+CP    = cp
+RM    = rm -f
 
 .str.42s:
 	$(FGLMKSTR) $*.str $*.42s
@@ -50,11 +35,7 @@ clean::
 	$(RM) *.tmp
 
 ifdef SUBDIRS
-    ifndef WINDIR
-        DOSUBDIRS = for i in $(SUBDIRS) ;do $(MAKE) -w -C $$i $@ || exit; done
-    else
-        DOSUBDIRS = for %%d in ($(SUBDIRS)) do cd %d && $(MAKE) $@ && cd .. || exit 1
-    endif
+DOSUBDIRS = for i in $(SUBDIRS) ;do $(MAKE) -w -C $$i $@ || exit; done
 
 .PHONY: subdirs
 
