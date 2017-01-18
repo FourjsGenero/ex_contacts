@@ -8,7 +8,7 @@ This Genero BDL demo shows how to implement mobile / server database
 synchronization with a REST Web Service.
 
 The mobile app has its own local database, and can share contact data
-with other mobile apps throught the central database program.
+with other mobile apps through the central database program.
 
 Allow user/contact location with Google geolocation services to show
 a map with contacts nearby, based on the contact address.
@@ -91,7 +91,7 @@ $ createdb -h localhost contacts --encoding "utf-8"
 5. Create your server database if needed (you can also use the ready-to-use SQLite database)
   * Go to the *mkcontacts_main* application node.
   * Edit the command line arguments in order to use your database.
-  * Rune the *mkcontacts_main* program to create the database tables.
+  * Run the *mkcontacts_main* program to create the database tables.
 6. Configure the server database:
   * Go to the *server_config* application node.
   * Edit the command line arguments in order to use your database.
@@ -153,7 +153,8 @@ $ make clean all
 
 If you want to create your own database instead of using the default
 SQLite database provided in server/contacts.sqlite, you must create
-the database tables and fill with sample data.
+the database tables and fill them with sample data, by using the -s
+option of the mkcontacts_main program.
 
 The sample data is created for 3 users: mike, max, ted ...
 
@@ -199,15 +200,15 @@ Now the server program runs in standalone mode. See below how to configure
 the GAS to run dbsync server programs in an application server context,
 to get load balancing.
 
-To check if the server is running, open a web browser and enter followin URL:
+To check if the server is running, open a web browser and enter the following URL:
 
 ```
 http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
 ```
 
-Note: The server program can automatically query the google geolocalization service
-to set GPS coordinates from the contacts addresses. In order to enable this
-feature, you need to register to this google service and get a API Key.
+Note: The server program can automatically query the Google geolocalization service
+to set GPS coordinates from the contacts addresses. In order to enable this feature,
+you need to register this with the Google service and get a API Key.
 Then start the dbsync_contact_server program with the -k <google-api-key> option.
 
 
@@ -289,7 +290,7 @@ $ cd <topdir>
 $ make
 ```
 
-Create a directory for the app database for use ted for example:
+Create a directory for the app database for user ted for example:
 
 ```
 $ mkdir /tmp/dbdir_ted
@@ -334,7 +335,7 @@ To cleanup, consider removing the SQLite database created in dbdir_ted.
 ### Deploying the app on an Android emulator
 
 When running the contacts app in an emulator from the Android SDK, the IP
-address of the host machine when the dbsync server runs is:
+address of the host machine where the dbsync server runs is:
 
 ```
 10.0.2.2     Special alias to your host loopback interface
@@ -355,13 +356,13 @@ After compiling server programs and deploying the mobile app:
 * Configure the users with the server_config program.
   * Add users if needed.
   * Define data filters.
-* Make sure your mobile devices is one the same Wifi as the server.
+* Make sure your mobile devices is on the same Wifi as the server.
 * Start the app on the mobile device.
 * At first start, the app will ask for config settings.
   * Define the server Host IP address
   * Define the port if you have changed it on the server side.
   * Define the user id (ted, mike or max are predefined)
-  * Configure the GAS settings if the server program is behing GAS.
+  * Configure the GAS settings if the server program is behind GAS.
   * Tap the "Test" button to see if the connection can be established.
   * Tap OK to save and close.
 * First synchronization should occur.
