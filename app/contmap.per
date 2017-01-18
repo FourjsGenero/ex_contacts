@@ -1,0 +1,30 @@
+ACTION DEFAULTS
+ ACTION zoom_in ( TEXT=%"contmap.zoom_in" )
+ ACTION zoom_out ( TEXT=%"contmap.zoom_out" )
+ ACTION find ( IMAGE="find", TEXT=%"contmap.find.title" )
+END
+LAYOUT (TEXT=%"contmap.title")
+GRID
+{
+[m                                  ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+}
+END
+END
+
+ATTRIBUTES
+WEBCOMPONENT m = FORMONLY.map_url,
+   SIZEPOLICY=FIXED,
+   STRETCH=BOTH,
+   SCROLLBARS=NONE;
+END

@@ -1,0 +1,6 @@
+*.42*
+*.tmp
+*.log
+dbdir_*
+*.4pwdb
+*.4pwvs

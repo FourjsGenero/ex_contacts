@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ANSI_X3.4-1968"?>
+<ActionDefaultList>
+  <ActionDefault name="accept" text="OK" acceleratorName="Return" acceleratorName2="Enter" contextMenu="no">
+    <LStr text="common.action.ok"/>
+  </ActionDefault>
+  <ActionDefault name="cancel" validate="no" text="Cancel" acceleratorName="Escape" contextMenu="no">
+    <LStr text="common.action.cancel"/>
+  </ActionDefault>
+  <ActionDefault name="insert" text="Insert" acceleratorName="F3" contextMenu="no">
+    <LStr text="common.action.insert"/>
+  </ActionDefault>
+  <ActionDefault name="append" text="Append" acceleratorName="Control-F3" contextMenu="no">
+    <LStr text="common.action.append"/>
+  </ActionDefault>
+  <ActionDefault name="update" text="Update">
+    <LStr text="common.action.update"/>
+  </ActionDefault>
+  <ActionDefault name="delete" validate="no" text="Delete" acceleratorName="F4" contextMenu="no" >
+    <LStr text="common.action.delete"/>
+  </ActionDefault>
+  <ActionDefault name="help" validate="no" text="Help" acceleratorName="F1" contextMenu="no">
+    <LStr text="common.action.help"/>
+  </ActionDefault>
+  <ActionDefault name="close" validate="no" text="Close" acceleratorName="Alt-F4" defaultView="no" contextMenu="no">
+    <LStr text="common.action.close"/>
+  </ActionDefault>
+  <ActionDefault name="interrupt" text="Interrupt" contextMenu="no">
+    <LStr text="common.action.interrupt"/>
+  </ActionDefault>
+  <ActionDefault name="yes" text="Yes" acceleratorName="Return" acceleratorName2="Enter" contextMenu="no">
+    <LStr text="common.action.yes"/>
+  </ActionDefault>
+  <ActionDefault name="no" text="No" acceleratorName="Return" acceleratorName2="Enter" contextMenu="no">
+    <LStr text="common.action.no"/>
+  </ActionDefault>
+  <ActionDefault name="dialogtouched" validate="no" defaultView="no"  contextMenu="no"/>
+</ActionDefaultList>

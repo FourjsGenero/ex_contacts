@@ -1,0 +1,95 @@
+ACTION DEFAULTS
+ACTION options (TEXT=%"contform.action.options")
+ACTION notes (TEXT=%"contform.action.notes")
+END 
+LAYOUT (TEXT=%"contform.title")
+GRID
+{
+<g g1                               >
+[l11        ][f11            ]
+[l12        ][f12                   ]
+             [f13                   ]
+<                                   >
+<g g2                               >
+[f34                                ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+<                                   >
+<g g3                               >
+[l21        ][f21                   ]
+             [                      ]
+             [                      ]
+[l22        ][f22                   ]
+<                                   >
+<g g4                               >
+[l31        ][f31                   ]
+[l32        ][f32                   ]
+[l33        ][f33                   ]
+<                                   >
+<g g5                               >
+[f14                                ]
+[f15                                ]
+[f16                                ]
+[f17                                ]
+[f18                                ]
+[f19                                ]
+<                                   >
+}
+END
+END
+
+ATTRIBUTES
+
+GROUP g1: group1, TEXT=%"contform.title.ident";
+GROUP g2: group2, TEXT=%"contform.title.picture";
+GROUP g3: group3, TEXT=%"contform.title.address";
+GROUP g4: group4, TEXT=%"contform.title.phones";
+GROUP g5: group5, TEXT=%"contform.title.modinfo";
+
+LABEL      l11: label11, TEXT=%"contform.label.id";
+EDIT       f11 = FORMONLY.contact_num, NOENTRY,
+                 TITLE=%"contform.label.id";
+LABEL      f14 = FORMONLY.contact_rec_muser;
+LABEL      f15 = FORMONLY.contact_rec_mtime;
+PHANTOM FORMONLY.contact_rec_mstat;
+LABEL      f16 = FORMONLY.status_label, COLOR = BLUE;
+LABEL      l12: label12, TEXT=%"contform.label.name";
+EDIT       f12 = FORMONLY.contact_name, SCROLL, NOT NULL,
+                 TITLE=%"contform.label.name";
+CHECKBOX   f13 = FORMONLY.contact_valid, NOT NULL,
+                 TEXT=%"contform.label.valid",
+                 VALUECHECKED="Y", VALUEUNCHECKED="N";
+LABEL      l21: label21, TEXT=%"contform.label.street";
+TEXTEDIT   f21 = FORMONLY.contact_street,
+                 TITLE=%"contform.label.street",
+                 --SIZEPOLICY=FIXED,
+                 WANTNORETURNS;
+PHANTOM FORMONLY.contact_city;
+LABEL      l22: label22, TEXT=%"contform.label.city";
+BUTTONEDIT f22 = FORMONLY.city_desc, SCROLL, NOT NULL,
+                 TITLE=%"contform.label.city",
+                 ACTION=zoom;
+LABEL      l31: label31, TEXT=%"contform.label.phone.mobile";
+EDIT       f31 = FORMONLY.contact_num_m, KEYBOARDHINT=PHONE,
+                 TITLE=%"contform.label.phone.mobile";
+LABEL      l32: label32, TEXT=%"contform.label.phone.work";
+EDIT       f32 = FORMONLY.contact_num_w, KEYBOARDHINT=PHONE,
+                 TITLE=%"contform.label.phone.work";
+LABEL      l33: label33, TEXT=%"contform.label.phone.home";
+EDIT       f33 = FORMONLY.contact_num_h, KEYBOARDHINT=PHONE,
+                 TITLE=%"contform.label.phone.home";
+PHANTOM FORMONLY.contact_photo_mtime;
+IMAGE      f34 = FORMONLY.contact_photo_file, ACTION=photo
+                 ,STRETCH=X
+                 ,AUTOSCALE
+                 ,SIZEPOLICY=FIXED
+                 ;
+LABEL      f17 = FORMONLY.contact_user;
+EDIT      f18 = FORMONLY.contact_loc_lon;
+EDIT      f19 = FORMONLY.contact_loc_lat;
+
+END

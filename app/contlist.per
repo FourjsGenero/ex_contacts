@@ -1,0 +1,39 @@
+ACTION DEFAULTS
+ACTION cancel (TEXT=%"contlist.action.cancel")
+ACTION options (TEXT=%"contlist.action.options")
+ACTION quit (TEXT=%"common.action.quit")
+END
+LAYOUT (TEXT=%"contlist.title")
+TABLE t1
+{
+[c1                   |c2                    ]
+[c1                   |c2                    ]
+[c1                   |c2                    ]
+[c1                   |c2                    ]
+[c1                   |c2                    ]
+[c1                   |c2                    ]
+}
+END
+END
+ATTRIBUTES
+PHANTOM FORMONLY.contact_num;
+PHANTOM FORMONLY.contact_rec_muser;
+PHANTOM FORMONLY.contact_rec_mtime;
+PHANTOM FORMONLY.contact_rec_mstat;
+c1 = FORMONLY.contact_name, SCROLL, IMAGECOLUMN=contact_photo_file;
+PHANTOM FORMONLY.contact_valid;
+PHANTOM FORMONLY.contact_street;
+PHANTOM FORMONLY.contact_city;
+PHANTOM FORMONLY.city_desc;
+PHANTOM FORMONLY.contact_num_m;
+PHANTOM FORMONLY.contact_num_w;
+PHANTOM FORMONLY.contact_num_h;
+PHANTOM FORMONLY.contact_user;
+PHANTOM FORMONLY.contact_loc_lon;
+PHANTOM FORMONLY.contact_loc_lat;
+PHANTOM FORMONLY.contact_photo_file;
+c2 = FORMONLY.short_desc, SCROLL;
+END
+INSTRUCTIONS
+SCREEN RECORD sr(FORMONLY.*);
+END

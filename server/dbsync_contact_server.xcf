@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- Copyright 2006-2013 Four J's Development Tools. All Rights Reserved. -->
+<APPLICATION
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://www.4js.com/ns/gas/2.20/cfextwa.xsd"
+  Parent="ws.default">
+  <EXECUTION>
+
+    <ENVIRONMENT_VARIABLE Id="LC_ALL">en_US.utf8</ENVIRONMENT_VARIABLE>
+    <ENVIRONMENT_VARIABLE Id="FGL_LENGTH_SEMANTICS">CHAR</ENVIRONMENT_VARIABLE>
+    <!-- Database client libraries (LD_LIBRARY_PATH) inherited from GAS env -->
+    <!--ENVIRONMENT_VARIABLE Id="LD_LIBRARY_PATH">...</ENVIRONMENT_VARIABLE -->
+
+    <PATH><!-- here goes path to top dir-->/server</PATH>
+    <MODULE>dbsync_contact_server.42m</MODULE>
+
+    <!-- Command line parameters for the dbsync program (PostgreSQL) -->
+    <PARAMETERS>
+      <PARAMETER>-d</PARAMETER>
+      <PARAMETER>contacts</PARAMETER>
+      <PARAMETER>-o</PARAMETER>
+      <PARAMETER><!-- here goes driver name --></PARAMETER>
+      <PARAMETER>-u</PARAMETER>
+      <PARAMETER><!-- here goes db login --></PARAMETER>
+      <PARAMETER>-w</PARAMETER>
+      <PARAMETER><!-- here goes db pswd --></PARAMETER>
+      <!--PARAMETER>-k</PARAMETER-->
+      <!--PARAMETER>...google_api_key_for_geolocation...</PARAMETER-->
+      <PARAMETER>-v</PARAMETER>
+    </PARAMETERS>
+
+    <POOL>
+       <START>0</START>
+       <MIN_AVAILABLE>0</MIN_AVAILABLE>
+       <MAX_AVAILABLE>10</MAX_AVAILABLE>
+    </POOL>
+
+  </EXECUTION>
+</APPLICATION>

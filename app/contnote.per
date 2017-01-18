@@ -1,0 +1,37 @@
+LAYOUT (TEXT=%"contnote.title")
+GRID
+{
+<g g1                               >
+[l11     :  :f11                    ]
+[f12                                ]
+[                                   ]
+[                                   ]
+[                                   ]
+[                                   ]
+[b01   :b02   :b03   :b04   :b05    ]
+<                                   >
+<g g2                               >
+[f21                                ]
+[f22                                ]
+[f23                                ]
+[f24                                ]
+<                                   >
+}
+END
+END
+ATTRIBUTES
+GROUP g1: group1; -- no title
+GROUP g2: group2, TEXT=%"contnote.title.modinfo";
+LABEL     l11: label11, TEXT=%"contnote.label.from";
+COMBOBOX  f11 = FORMONLY.contnote_when, NOT NULL;
+TEXTEDIT  f12 = FORMONLY.contnote_text, SIZEPOLICY=FIXED;
+BUTTON    b01: note_append, IMAGE="fa-edit";
+BUTTON    b02: note_copy, IMAGE="fa-copy";
+BUTTON    b03: note_delete, IMAGE="fa-trash-o";
+BUTTON    b04: note_up, IMAGE="fa-arrow-up";
+BUTTON    b05: note_down, IMAGE="fa-arrow-down";
+LABEL     f21 = FORMONLY.contnote_num;
+LABEL     f22 = FORMONLY.contnote_rec_muser;
+LABEL     f23 = FORMONLY.contnote_rec_mtime;
+LABEL     f24 = FORMONLY.contnote_rec_mstat;
+END

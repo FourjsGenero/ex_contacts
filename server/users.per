@@ -1,0 +1,61 @@
+LAYOUT
+GRID
+{
+<t t1                                                ><g g1   >
+[c1   |c2  |c3                                |c4   ] [b_upd]
+[c1   |c2  |c3                                |c4   ] [b_app]
+[c1   |c2  |c3                                |c4   ] [b_del]
+[c1   |c2  |c3                                |c4   ] [b_rst]
+[c1   |c2  |c3                                |c4   ] [b_cpw]
+[c1   |c2  |c3                                |c4   ] [b_rld]
+<                                                    ><       >
+<t t2                    >[wp                                 ]
+[c21      |c22    |c23   ][                                   ]
+[c21      |c22    |c23   ][                                   ]
+[c21      |c22    |c23   ][                                   ]
+[c21      |c22    |c23   ][                                   ]
+[c21      |c22    |c23   ][                                   ]
+[c21      |c22    |c23   ][                                   ]
+<                        >[                           :b_sav  ]
+}
+END
+END
+ATTRIBUTES
+EDIT c1 = FORMONLY.user_id, TITLE="User ID";
+COMBOBOX c2 = FORMONLY.user_has_pswd, TITLE="Password",
+  NOENTRY, ITEMS = ((1,"Yes"), (0,"No"));
+EDIT c3 = FORMONLY.user_name, TITLE="Name",
+  SCROLL, NOT NULL;
+COMBOBOX c4 = FORMONLY.user_status, TITLE="Status",
+  NOT NULL, ITEMS = ((1,"Active"), (-1,"Denied"));
+GROUP g1: group1;
+BUTTON b_upd: update, IMAGE="listins", TEXT="Modify";
+BUTTON b_app: append, IMAGE="listadd", TEXT="New user";
+BUTTON b_del: delete, IMAGE="listdel", TEXT="Delete";
+BUTTON b_rst: rsttim, IMAGE="reset", TEXT="Reset ts";
+BUTTON b_cpw: clpswd, IMAGE="fa-lock", TEXT="Clear pswd";
+BUTTON b_rld: reload, IMAGE="fa-refresh", TEXT="Refresh";
+PHANTOM FORMONLY.f_user_id;
+EDIT c21 = FORMONLY.table_name, TITLE="Table name",
+  SCROLL, NOT NULL;
+EDIT c22 = FORMONLY.last_mtime, TITLE="Last MTime";
+EDIT c23 = FORMONLY.temp_mtime, TITLE="Temp MTime";
+PHANTOM FORMONLY.where_part;
+TEXTEDIT wp = FORMONLY.wpinput, STRETCH=BOTH;
+BUTTON b_sav: save, TEXT="Save";
+END
+INSTRUCTIONS
+SCREEN RECORD users(
+  FORMONLY.user_id,
+  FORMONLY.user_has_pswd,
+  FORMONLY.user_name,
+  FORMONLY.user_status
+);
+SCREEN RECORD tabinfo(
+  FORMONLY.f_user_id,
+  FORMONLY.table_name,
+  FORMONLY.last_mtime,
+  FORMONLY.temp_mtime,
+  FORMONLY.where_part
+);
+END

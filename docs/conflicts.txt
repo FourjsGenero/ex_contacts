@@ -1,0 +1,126 @@
+
+This document describes db sync case to consider in the Contacts app
+
+Describes synchronization of a single table, with data centralized on a server
+database, and shared by several mobile devices/users, that can configure the
+application to get only a given set of records (data fetched from server is a
+subset of the whole table in the central db).
+
+The table uses an internal primary key (hidden to the user), but has a unique
+constraint (name column).
+
+Further investigation should be done with master/detail tables, using foreign
+key constraints.
+
+--------------------------------------------------------------------------------
+C1: Basic case of record creation DB constraint (no concurrency)
+
+1) Mobile A creates a new record R in mobile DB => ok.
+2) Mobile A makes db sync to central DB => DB constraints denies INSERT.
+3) Report the problem to Mobile A.
+   Resolutions:
+   R1: The record is kept in A and must be modified.
+
+--------------------------------------------------------------------------------
+C2: Basic case of record modification DB constraint (no concurrency)
+
+1) Mobile A modifies an existing record R in mobile DB => ok.
+2) Mobile A makes db sync to central DB => DB constraints denies UPDATE.
+3) Report the problem to Mobile A.
+   Resolutions:
+   R1: The record is kept in A and must be modified.
+
+--------------------------------------------------------------------------------
+C3: Basic case of record deletion DB constraint (no concurrency)
+
+1) Mobile A deletes an existing record R in mobile DB => ok.
+2) Mobile A makes db sync to central DB => DB constraints denies DELETE.
+3) Report the problem to Mobile A.
+   Resolutions:
+   R1: The record is kept in A (it is sync)
+
+--------------------------------------------------------------------------------
+C4: Basic sync/update, receiving changes from server
+
+1) Mobile A makes db sync to central DB
+   => Get reduced list of records and modifications since last sync.
+2) Report the warning to Mobile A if records were deleted.
+   Resolutions:
+   R1: Mobile A sees warnings for records that have been removed.
+   Could also be done for modified records, but maybe too much info.
+
+--------------------------------------------------------------------------------
+C5: Concurrent record creation with unique constraint violation
+
+1) Mobile A creates a new record in mobile DB with name "Bob" => ok.
+2) Mobile B creates a new record in mobile DB with name "Bob" => ok.
+3) Mobile A makes db sync to central DB => ok.
+4) Mobile B makes db sync to central DB => unique constraint failure.
+5) Report and handle conflict problem in Mobile B.
+   Resolutions: (assuming that new temporary created record is kept in B)
+   R1: Remove the new record created locally, because it's a dup.
+   R2: Change the name to fix unique constraint and try a new sync.
+
+First mobile user making the modification wins.
+
+--------------------------------------------------------------------------------
+C6: Concurrent record creation/modification with unique constraint violation
+
+1) Mobile A creates a new record in mobile DB with name "Bob" => ok.
+2) Mobile B modifies an existing record in mobile DB with name "Bob" => ok.
+3) Mobile A makes db sync to central DB => ok.
+4) Mobile B makes db sync to central DB => unique constraint failure.
+5) Report and handle conflict problem in Mobile B.
+   Resolutions: (assuming that modified record is kept in B)
+   R1: Remove the record modified locally, because it's a dup.
+   R2: Change the name to fix unique constraint and try a new sync.
+
+Note that here we could consider that B should have modification priority
+over A, because B modifies an existing record... Impossible to manage IMHO.
+
+--------------------------------------------------------------------------------
+C7: Concurrent record modification changing secondary info
+
+1) Mobile A modifies existing record X0 in mobile DB (secondary info) => ok.
+2) Mobile B modifies existing record X0 in mobile DB (secondary info) => ok.
+3) Mobile A makes db sync to central DB => ok.
+4) Mobile B makes db sync to central DB => timestamp check denies update on X0.
+5) Report and handle conflict problem in Mobile B.
+   Resolutions: (assuming that modified record is kept in B as copy X1)
+   R1: Remove the record modified locally, seeing synched record modified by A
+   R2: Merge changes of X1 into X0, then remove copy record X1.
+
+--------------------------------------------------------------------------------
+C8: Concurrent record deletion
+
+1) Mobile A deletes a record X in mobile DB => ok.
+2) Mobile B deletes same record X in mobile DB => ok.
+3) Mobile A makes db sync to central DB => ok.
+4) Mobile B makes db sync to central DB => DELETE indicates record X is missing
+5) Report the warning to Mobile B.
+   Resolutions:
+   R1: Phantom record X can deleted from B (automatic or manual cleanup).
+
+--------------------------------------------------------------------------------
+C9: Concurrent record modification / deletion
+
+1) Mobile A modifies a record X in mobile DB => ok.
+2) Mobile B deletes same record X in mobile DB => ok.
+3) Mobile A makes db sync to central DB => ok.
+4) Mobile B makes db sync to central DB => timestamp check denies delete.
+5) Report the warning to Mobile B.
+   Resolutions:
+   R1: The record is kept, and gets modification from A.
+
+--------------------------------------------------------------------------------
+C10: Concurrent record deletion / modification
+
+1) Mobile A deletes a record X in mobile DB => ok.
+2) Mobile B modifies same record X in mobile DB => ok.
+3) Mobile A makes db sync to central DB => ok.
+4) Mobile B makes db sync to central DB => X does no longer exist in central DB!
+5) Report the warning to Mobile B.
+   Resolutions: (assuming that modified record is kept in B)
+   R1: Record copy is deleted (automatically or manual cleanup).
+   R2: Record copy is marked as new, for a re-insertion.
+

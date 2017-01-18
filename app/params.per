@@ -1,0 +1,76 @@
+LAYOUT (TEXT=%"params.title")
+GRID
+{
+<g g1                         >
+[l_fmt         |fmt           ]
+[l_ptc         |ptc           ]
+[l_hst         |hst           ]
+[l_prt         |prt           ]
+[l_uid         |uid        |pw]
+[fgas                         ]
+[l_cnt         |cnt           ]
+[l_grp         |grp           ]
+[url                          ]
+[btest                        ]
+[l_snc         |snc           ]
+[fgeo                         ]
+<                             >
+}
+END
+END
+ATTRIBUTES
+GROUP g1: group1, TEXT=%"params.title";
+
+LABEL l_uid: label_uid, TEXT=%"params.label.userid";
+EDIT uid = FORMONLY.user_id, SCROLL, NOT NULL, REQUIRED;
+
+BUTTON pw: set_password, IMAGE="fa-lock";
+
+LABEL l_fmt: label_fmt, TEXT=%"params.label.cdbfmt";
+COMBOBOX fmt = FORMONLY.cdb_format, NOT NULL, REQUIRED,
+           ITEMS=(("json","JSON Format"),
+                  ("xml","XML Format"));
+
+LABEL l_ptc: l_ptc, TEXT=%"params.label.cdbprot";
+COMBOBOX ptc = FORMONLY.cdb_protocol, NOT NULL, REQUIRED,
+           ITEMS=(("http","Over HTTP"),
+                  ("https","Over HTTPS"));
+
+LABEL l_hst: label_hst, TEXT=%"params.label.cdbhost";
+EDIT hst = FORMONLY.cdb_host, SCROLL, NOT NULL, REQUIRED;
+
+LABEL l_prt: label_prt, TEXT=%"params.label.cdbport";
+EDIT prt = FORMONLY.cdb_port, SCROLL, NOT NULL, REQUIRED;
+
+CHECKBOX fgas = FORMONLY.cdb_gas, TEXT=%"params.label.cdbgas",
+           VALUECHECKED="Y", VALUEUNCHECKED="N",
+           NOT NULL, REQUIRED;
+
+LABEL l_cnt: label_cnt, TEXT=%"params.label.cdbctor";
+EDIT cnt = FORMONLY.cdb_connector, SCROLL;
+
+LABEL l_grp: label_grp, TEXT=%"params.label.cdbgrp";
+EDIT grp = FORMONLY.cdb_group, SCROLL;
+
+LABEL l_snc: l_snc, TEXT=%"params.label.autosync";
+COMBOBOX snc = FORMONLY.auto_sync,
+           ITEMS = (
+                     (    0, %"params.autosync.item.manual" ),
+                     (   60, "1 min"  ),
+                     (  300, "5 mins"  ),
+                     (  600, "10 mins" ),
+                     ( 1800, "30 mins" ),
+                     ( 3600, "1 hour" )
+                   ),
+           NOT NULL, REQUIRED;
+
+CHECKBOX fgeo = FORMONLY.sync_geoloc, TEXT=%"params.label.sync_geoloc",
+           VALUECHECKED="Y", VALUEUNCHECKED="N",
+           NOT NULL, REQUIRED;
+
+
+LABEL url = FORMONLY.cdb_url, COLOR=GREEN;
+
+BUTTON btest: test_connection, TEXT=%"params.button.test";
+
+END

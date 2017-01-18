@@ -1,0 +1,15 @@
+LAYOUT
+TABLE
+{
+[c1         |c2             ]
+}
+END
+END 
+ATTRIBUTES
+PHANTOM FORMONLY.key;
+c1 = FORMONLY.name;
+c2 = FORMONLY.detail;
+END
+INSTRUCTIONS
+SCREEN RECORD sr(FORMONLY.*);
+END
