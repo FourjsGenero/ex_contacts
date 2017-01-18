@@ -304,11 +304,14 @@ FUNCTION sequence_next(tabname)
   DEFINE tabname STRING
   DEFINE sqlstmt STRING
   DEFINE newseq BIGINT
-  IF fgl_db_driver_type()=="pgs" THEN
-    LET sqlstmt = "SELECT nextval('"||tabname||"_seq')"||unique_row_condition()
-  ELSE
-    LET sqlstmt = "SELECT "||tabname||"_seq.nextval "||unique_row_condition()
-  END IF
+  CASE fgl_db_driver_type()
+    WHEN "pgs"
+      LET sqlstmt = SFMT("SELECT nextval('%1_seq')",tabname)||unique_row_condition()
+    WHEN "sqt" -- Assuming primary key column is integer and named <tabname>_num!
+      LET sqlstmt = SFMT("SELECT MAX(%1_num) + 1 FROM %1",tabname)
+    OTHERWISE
+      LET sqlstmt = SFMT("SELECT %1_seq.nextval ",tabname)||unique_row_condition()
+  END CASE
   WHENEVER ERROR CONTINUE
   PREPARE seq_next FROM sqlstmt
   IF SQLCA.SQLCODE!=0 THEN RETURN -1 END IF
