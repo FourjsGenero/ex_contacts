@@ -81,15 +81,24 @@ $ createdb -h localhost contacts --encoding "utf-8"
 
 ### Server-side programs
 
-* Open a first Studio instance and load the server_progs.4pw project file.
-* Configure UTF-8 locale with char length semantics (build rules env vars)
-  Warning: n Windows you need to change LANG to .fglutf8
+* Open a first Studio instance and load the *server_progs.4pw* project file.
+* Make sure you have a valid Genero Desktop configuration.
+* Configure UTF-8 locale with FGL_LENGTH_SEMANTICS=CHAR (in build rules env vars)
+  * **Warning**: On Windows you need to set LANG=.fglutf8 (remove LC_ALL)
 * Build the server programs.
 * Create your server database if needed (you can also use the ready-to-use SQLite database)
-  1. Go to the mkcontacts_main application node.
-  1. Edit the command line arguments in order to use your database.
-  2. Execute the mkcontacts_main program to create the database tables.
-* Execute the dbsync_contact_server program.
+  1. Go to the *mkcontacts_main* application node.
+  2. Edit the command line arguments in order to use your database.
+  3. Rune the *mkcontacts_main* program to create the database tables.
+* Configure the server database:
+  1. Go to the *server_config* application node.
+  2. Edit the command line arguments in order to use your database.
+  4. Run the program.
+* Execute the server program managing database synchronization:
+  1. Go to the *dbsync_contact_server* application node.
+  2. Edit the command line arguments in order to use your database.
+  3. Check the command line arguments for the TCP port.
+  4. Run the program.
 
 ### Contacts app for mobile
 
