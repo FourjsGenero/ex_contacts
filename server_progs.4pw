@@ -82,6 +82,7 @@
     </Library>
     <Application binaryName="dbsync_contact_server" commandLineArguments="-d contacts -o dbmsqt -f contacts.sqlite -p 8090 -v" dependencies="296203105||-158894972" description="DBSync Web Services program" id="-770139336" label="dbsync_contact_server">
       <File excludeFromLink="true" filePath="server/dbsync_contact_server.4gl"/>
+      <File excludeFromCompilation="true" excludeFromLink="true" filePath="server/dbsync_contact_server.xcf"/>
     </Application>
     <Application binaryName="mkcontacts_main" dependencies="-158894972||296203105" description="Server database creation program" id="-1718480096" label="mkcontacts_main">
       <File filePath="server/mkcontacts_main.4gl"/>
