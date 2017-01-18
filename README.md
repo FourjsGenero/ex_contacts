@@ -81,31 +81,37 @@ $ createdb -h localhost contacts --encoding "utf-8"
 
 ### Server-side programs
 
-* Open a first Studio instance and load the *server_progs.4pw* project file.
-* Make sure you have a valid Genero Desktop configuration.
-* Configure UTF-8 locale with FGL_LENGTH_SEMANTICS=CHAR (in build rules env vars)
-  * **Warning**: On Windows you need to set LANG=.fglutf8 (remove LC_ALL)
-* Build the server programs.
-* Create your server database if needed (you can also use the ready-to-use SQLite database)
-  1. Go to the *mkcontacts_main* application node.
-  2. Edit the command line arguments in order to use your database.
-  3. Rune the *mkcontacts_main* program to create the database tables.
-* Configure the server database:
-  1. Go to the *server_config* application node.
-  2. Edit the command line arguments in order to use your database.
-  4. Run the program.
-* Execute the server program managing database synchronization:
-  1. Go to the *dbsync_contact_server* application node.
-  2. Edit the command line arguments in order to use your database.
-  3. Check the command line arguments for the TCP port.
-  4. Run the program.
+1. Open a first Studio instance and load the *server_progs.4pw* project file.
+2. Make sure you have a valid Genero Desktop configuration.
+3. In project build rules, check the env vars for UTF-8:
+  * Set LANG/LC_ALL for a UTF-8 locale
+    * **Warning**: On Windows you need to set LANG=.fglutf8 (remove LC_ALL)
+  * Set FGL_LENGTH_SEMANTICS=CHAR to get char length semantics
+4. Build the server programs.
+5. Create your server database if needed (you can also use the ready-to-use SQLite database)
+  * Go to the *mkcontacts_main* application node.
+  * Edit the command line arguments in order to use your database.
+  * Rune the *mkcontacts_main* program to create the database tables.
+6. Configure the server database:
+  * Go to the *server_config* application node.
+  * Edit the command line arguments in order to use your database.
+  * Run the program.
+7. Execute the server program managing database synchronization:
+  * Go to the *dbsync_contact_server* application node.
+  * Edit the command line arguments in order to use your database.
+  * Check the command line arguments for the TCP port.
+  * Run the program.
 
 ### Contacts app for mobile
 
-* Open a second Studio instance and load the contacts.4pw project file.
-* Configure UTF-8 locale with char length semantics (build rules env vars) (on Windows you need to change LANG to .fglutf8)
-* Configure the environment for Android or iOS.
-* Build the app and deploy the contacts app.
+1. Open a second Studio instance and load the *contacts.4pw* project file.
+2. Configure UTF-8 locale with char length semantics as for server programs.
+3. Configure the environment for Android or iOS.
+4. Build the app.
+5. Test by running the app in development mode.
+6. Deploy the contacts app to your device.
+7. Start the app on the device.
+8. See Usage section for testing.
 
 
 ## Using command line (Linux)
