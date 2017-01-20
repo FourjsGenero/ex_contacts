@@ -62,6 +62,7 @@
       <VariableList>
         <Variable name="FGL_LENGTH_SEMANTICS" type="value" value="CHAR"/>
         <Variable name="LC_ALL" type="value" value="en_US.utf8"/>
+        <Variable name="LANG" type="value" value=".fglutf8"/>
       </VariableList>
     </Language>
   </LanguageList>

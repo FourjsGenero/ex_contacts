@@ -84,8 +84,10 @@ $ createdb -h localhost contacts --encoding "utf-8"
 1. Open a first Studio instance and load the *server_progs.4pw* project file.
 2. Make sure you have a valid Genero Desktop configuration.
 3. In project build rules, check the env vars for UTF-8:
-  * Set LANG/LC_ALL for a UTF-8 locale
-    * **Warning**: On Windows you need to set LANG=.fglutf8 (remove LC_ALL)
+  * Set LANG/LC_ALL for a UTF-8 locale in the build rules of the project
+    * **Warnings**
+      * On Windows you need to set LANG=.fglutf8 (remove LC_ALL)
+      * On MacOS you need to set LC_ALL=en_US.UTF-8
   * Set FGL_LENGTH_SEMANTICS=CHAR to get char length semantics
 4. Build the server programs.
 5. Create server db tables: *Skip this when using the default SQLite DB server side*
