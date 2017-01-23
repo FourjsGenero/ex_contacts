@@ -28,7 +28,9 @@ PUBLIC TYPE t_selist RECORD
            user_auth t_user_auth ATTRIBUTE(XMLOPTIONAL), -- Encrypted!
            first_sync BOOLEAN,
            status STRING ATTRIBUTE(XMLOPTIONAL),
-           events t_dbsync_event_array
+           elw RECORD ATTRIBUTE(XMLOptional) -- Record needed for XML serialization
+               events t_dbsync_event_array
+           END RECORD
        END RECORD
 
 TYPE t_resinfo RECORD
@@ -213,7 +215,7 @@ PUBLIC FUNCTION dbsync_change_user_auth(user_id, old_auth, new_auth)
     LET selist.user_id = user_id
     LET selist.user_auth = old_auth
     LET selist.first_sync = FALSE
-    LET selist.events[1].data = new_auth
+    LET selist.elw.events[1].data = new_auth
     CALL send_post_command(selist.*) RETURNING result, selist_res.*
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: status = %1",result)
@@ -259,17 +261,17 @@ PUBLIC FUNCTION dbsync_bind_user(user_id, user_auth, contact_num)
     LET selist.user_id = user_id
     LET selist.user_auth = user_auth
     LET selist.first_sync = FALSE
-    LET selist.events[1].ident = 1
-    LET selist.events[1].type = "set_user"
-    LET selist.events[1].data = contact_num
+    LET selist.elw.events[1].ident = 1
+    LET selist.elw.events[1].type = "set_user"
+    LET selist.elw.events[1].data = contact_num
     CALL send_post_command(selist.*) RETURNING result, selist_res.*
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: status = %1",result), 0
     END IF
     CALL dbsync_result_desc(selist_res.status) RETURNING s, desc
-    IF s==0 AND selist_res.events.getLength()==1 THEN
-       IF selist_res.events[1].type = "old_cnum" THEN
-          LET old_cnum = selist_res.events[1].data
+    IF s==0 AND selist_res.elw.events.getLength()==1 THEN
+       IF selist_res.elw.events[1].type = "old_cnum" THEN
+          LET old_cnum = selist_res.elw.events[1].data
           UPDATE contact
              SET contact_user = v_undef,
                  contact_loc_lon = NULL,
@@ -361,11 +363,11 @@ PUBLIC FUNCTION dbsync_update_geoloc(user_id, user_auth, lon, lat)
     LET selist.user_id = user_id
     LET selist.user_auth = user_auth
     LET selist.first_sync = FALSE
-    LET selist.events[1].ident = 1
-    LET selist.events[1].type = "position"
+    LET selist.elw.events[1].ident = 1
+    LET selist.elw.events[1].type = "position"
     LET pos.longitude = lon
     LET pos.latitude = lat
-    LET selist.events[1].data = util.JSON.stringify(pos)
+    LET selist.elw.events[1].data = util.JSON.stringify(pos)
     CALL send_post_command(selist.*) RETURNING result, selist_res.*
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: %1",result)
@@ -411,7 +413,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_send(first_sync, user_id, user_auth)
     LET selist.user_auth = user_auth
     LET selist.first_sync = first_sync
     TRY
-       CALL sync_contacts_collect_changes(user_id, selist.events)
+       CALL sync_contacts_collect_changes(user_id, selist.elw.events)
        CALL send_post_command(selist.*) RETURNING result, selist_res.*
        IF result IS NOT NULL THEN
           RETURN -2, result
@@ -489,7 +491,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
            CASE selist_res.status
              WHEN "success"
                TRY
-                  CALL util.JSON.parse(selist_res.events[1].data, r_contact)
+                  CALL util.JSON.parse(selist_res.elw.events[1].data, r_contact)
                   CALL refresh_contact(mode, r_contact.*)
                CATCH
                   LET r=-3
@@ -516,7 +518,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
            CASE selist_res.status
              WHEN "success"
                TRY
-                  CALL util.JSON.parse(selist_res.events[1].data, r_contnote)
+                  CALL util.JSON.parse(selist_res.elw.events[1].data, r_contnote)
                   CALL refresh_contnote(r_contnote.*)
                CATCH
                   LET r=-3
@@ -653,7 +655,7 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
        LET selist_res.status = libutil.users_change_auth(
                                   selist_mod.user_id,
                                   selist_mod.user_auth,     -- Encrypted
-                                  selist_mod.events[1].data -- Encrypted
+                                  selist_mod.elw.events[1].data -- Encrypted
                                )
        IF selist_res.status != "success" THEN
           CALL sync_server_log(SFMT("Password change failed for %1", selist_mod.user_id))
@@ -696,12 +698,12 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
        -- See above, selist_res.status already set.
        CALL sync_server_log(SFMT("Binding user: %1 <= %2",
                                  selist_mod.user_id,
-                                 selist_mod.events[1].data))
+                                 selist_mod.elw.events[1].data))
        LET selist_res.status = do_bind_user(selist_mod.user_id,
-                                            selist_mod.events[1].data,
+                                            selist_mod.elw.events[1].data,
                                             last_user_mtime,
                                             curr_user_mtime,
-                                            selist_res.events)
+                                            selist_res.elw.events)
        -- Personal data, no need to use sync timestamp.
        RETURN selist_res.*
     END IF
@@ -710,10 +712,10 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
     IF selist_mod.command == "update_geoloc" THEN
        CALL sync_server_log(SFMT("Update Geolocation for %1: %2",
                                  selist_mod.user_id,
-                                 selist_mod.events[1].data))
+                                 selist_mod.elw.events[1].data))
        -- See above, selist_res.status already set.
        LET selist_res.status = do_update_geoloc(selist_mod.user_id,
-                                                selist_mod.events[1].data,
+                                                selist_mod.elw.events[1].data,
                                                 curr_user_mtime)
        -- Personal data, no need to use sync timestamp.
        RETURN selist_res.*
@@ -732,16 +734,16 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
        -- See above, selist_res.status already set.
 
        CALL do_mobile_changes(selist_mod.user_id,
-                              selist_mod.events,
+                              selist_mod.elw.events,
                               last_user_mtime,
                               curr_user_mtime,
-                              selist_res.events,
+                              selist_res.elw.events,
                               updlist_contact,
                               ffrlist_contact,
                               updlist_contnote)
 
        CALL collect_central_changes(selist_mod.user_id,
-                                    selist_res.events,
+                                    selist_res.elw.events,
                                     selist_mod.first_sync,
                                     last_user_mtime,
                                     updlist_contact,
@@ -863,19 +865,19 @@ PUBLIC FUNCTION dbsync_contacts_get_request(uri)
     CASE req_type
         WHEN "get_contact_1"
              CALL sync_server_log(SFMT("Query (full) contact record %1 for user %2", obj_id, user_id))
-             LET selist_res.events[1].type = "contact_record_1"
+             LET selist_res.elw.events[1].type = "contact_record_1"
              CALL json_fetch_contact( 1, obj_id )
-                  RETURNING selist_res.status, selist_res.events[1].data
+                  RETURNING selist_res.status, selist_res.elw.events[1].data
         WHEN "get_contact_2"
              CALL sync_server_log(SFMT("Query (short) contact record %1 for user %2", obj_id, user_id))
-             LET selist_res.events[1].type = "contact_record_2"
+             LET selist_res.elw.events[1].type = "contact_record_2"
              CALL json_fetch_contact( 2, obj_id )
-                  RETURNING selist_res.status, selist_res.events[1].data 
+                  RETURNING selist_res.status, selist_res.elw.events[1].data
         WHEN "get_contnote"
              CALL sync_server_log(SFMT("Query contnote record %1 for user %2", obj_id, user_id))
-             LET selist_res.events[1].type = "contnote_record"
+             LET selist_res.elw.events[1].type = "contnote_record"
              CALL json_fetch_contnote( obj_id )
-                  RETURNING selist_res.status, selist_res.events[1].data 
+                  RETURNING selist_res.status, selist_res.elw.events[1].data
         OTHERWISE
              CALL sync_server_log(SFMT("Invalid GET command: %1", req_type))
     END CASE
@@ -1490,112 +1492,112 @@ PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
        RETURN s, desc
     END IF
     BEGIN WORK -- TODO: Handle SQL errors / rollback
-    FOR i=1 TO selist_res.events.getLength()
-        CASE selist_res.events[i].type
+    FOR i=1 TO selist_res.elw.events.getLength()
+        CASE selist_res.elw.events[i].type
             -- contact table:
             WHEN "delete_contact_success"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                DELETE FROM contnote WHERE contnote_contact = resinfo.num
                DELETE FROM contact WHERE contact_num = resinfo.num
             WHEN "delete_contact_phantom"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                DELETE FROM contnote WHERE contnote_contact = resinfo.num
                DELETE FROM contact WHERE contact_num = resinfo.num
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "delete_contact_fail"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"R",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "delete_contact_conflict"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"E",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "create_contact_success"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"s",resinfo.info)
             WHEN "create_contact_fail"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"C",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "update_contact_success"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"S",resinfo.info)
             WHEN "update_contact_phantom"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"P",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "update_contact_fail"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"X",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "update_contact_conflict"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"M",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "refresh_contact_1" -- With photo data 
-               CALL util.JSON.parse(selist_res.events[i].data, r_contact)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, r_contact)
                LET x = download_items.getLength()+1
                LET download_items[x].type = "C1"
                LET download_items[x].num = r_contact.contact_num
             WHEN "refresh_contact_2" -- Without photo data 
-               CALL util.JSON.parse(selist_res.events[i].data, r_contact)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, r_contact)
                LET x = download_items.getLength()+1
                LET download_items[x].type = "C2"
                LET download_items[x].num = r_contact.contact_num
             WHEN "filter_contact"
-               CALL util.JSON.parse(selist_res.events[i].data, numlistdet)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, numlistdet)
                CALL filter_contact(numlistdet)
             -- contnote table:
             WHEN "delete_contnote_success"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                DELETE FROM contnote WHERE contnote_num = resinfo.num
             WHEN "delete_contnote_phantom"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                DELETE FROM contnote WHERE contnote_num = resinfo.num
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "delete_contnote_fail"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"R",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "delete_contnote_conflict"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"E",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "create_contnote_success"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"s",resinfo.info)
             WHEN "create_contnote_phantom_contact"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"C",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "create_contnote_fail"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"C",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "update_contnote_success"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"S",resinfo.info)
             WHEN "update_contnote_phantom"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"P",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "update_contnote_fail"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"X",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "update_contnote_conflict"
-               CALL util.JSON.parse(selist_res.events[i].data, resinfo)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"M",resinfo.info)
-               CALL dbsynclog_record(selist_res.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "refresh_contnote"
-               CALL util.JSON.parse(selist_res.events[i].data, r_contnote)
+               CALL util.JSON.parse(selist_res.elw.events[i].data, r_contnote)
                LET x = download_items.getLength()+1
                LET download_items[x].type = "NT"
                LET download_items[x].num = r_contnote.contnote_num
                
             -- General
             WHEN "datafilter_city"
-               LET datafilter_city = selist_res.events[i].data
+               LET datafilter_city = selist_res.elw.events[i].data
         END CASE
     END FOR
     COMMIT WORK
