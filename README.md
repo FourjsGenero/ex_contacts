@@ -16,7 +16,7 @@ a map with contacts nearby, based on the contact address.
 Note that the contact database of this demo is isolated: it does not
 use the contact database of the mobile device.
 
-![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-002.png)
+![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-002.png =600x)
 
 ### Components
 
@@ -46,9 +46,9 @@ use the contact database of the mobile device.
 9. Automatic refresh with timeout config.
 10. Handle GPS coordinates, to show contact locations on a map.
 
-![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-003.png)
+![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-003.png =600x)
 
-![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-004.png)
+![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-004.png =600x)
 
 ## Requirements
 
