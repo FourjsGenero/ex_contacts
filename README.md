@@ -32,20 +32,23 @@ use the contact database of the mobile device.
 
 1. Optimized DB Synchronization process:
   * based on timestamp modification flags
-  * only modifed contact records are sent
+  * only modified contact records are exchanged
   * does not send contact photo data if not needed
   * does not send contact notes details if not needed
-  * data filter can be defined per users (to load only contacts from a given city or country)
+  * user-specific data filters (to load contacts from a given city or country)
   * return receipt mechanism to make sure mobile app has updated local database
 2. DB Synchronization can be encrypted over HTTPS, using JSON or XML format.
 3. Server programs can be executed through GAS for load balancing.
 4. App users can protect their login with a password.
 5. Conflicts are managed on the server side, sync report displayed if conflicts.
-6. Users can be activated/deactivated from server config program.
-8. In case of de-sync, can do a full-sync to cleanup and retrieve all contacts from server.
+6. Users can be activated/deactivated from server with a config program.
+8. Can do a full re-sync to cleanup and retrieve all contacts from server.
 9. Automatic refresh with timeout config.
-10. Send GPS coordinates for current user.
+10. Handle GPS coordinates, to show contact locations on a map.
 
+![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-003.png)
+
+![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-004.png)
 
 ## Requirements
 
@@ -104,6 +107,8 @@ $ createdb -h localhost contacts --encoding "utf-8"
   * Edit the command line arguments in order to use your database.
   * Check the command line arguments for the TCP port.
   * Run the program.
+
+![Genero Contacts app (server program)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-001.png)
 
 ### Contacts app for mobile
 

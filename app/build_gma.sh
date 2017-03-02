@@ -26,9 +26,9 @@ gmabuildtool build \
     --build-app-version-name "3.1" \
     --build-mode release \
     --build-types arm,x86 \
-    --build-app-icon-mdpi   resources/android/icons/anonymous_48x48.png \
-    --build-app-icon-hdpi   resources/android/icons/anonymous_72x72.png \
-    --build-app-icon-xhdpi  resources/android/icons/anonymous_96x96.png \
-    --build-app-icon-xxhdpi resources/android/icons/anonymous_144x144.png \
+    --build-app-icon-mdpi   resources/android/icons/dbsync_contacts_48x48.png \
+    --build-app-icon-hdpi   resources/android/icons/dbsync_contacts_72x72.png \
+    --build-app-icon-xhdpi  resources/android/icons/dbsync_contacts_96x96.png \
+    --build-app-icon-xxhdpi resources/android/icons/dbsync_contacts_144x144.png \
     --build-app-colors "#F44336,#B71C1C,#EF9A9A,#FFFFFF"
 

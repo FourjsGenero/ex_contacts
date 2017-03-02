@@ -72,7 +72,7 @@ DEFINE curr_contact RECORD
      END RECORD
 
 CONSTANT BFN_DIRECTORY = "bfn_tmp",
-         ANONYMOUS_IMAGE_FILE = "./images/anonymous.jpg"
+         ANONYMOUS_IMAGE_FILE = "./images/anonymous.png"
 
 DEFINE source VARCHAR(300)
 

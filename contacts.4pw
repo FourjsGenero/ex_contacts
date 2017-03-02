@@ -77,7 +77,7 @@
       <File filePath="common/contacts.sch"/>
     </Library>
     <Library binaryName="images" excludeFromBuild="true" id="-1144417370" label="images" targetDirectory="$(ProjectDir)/build/appdir">
-      <File filePath="app/images/anonymous.jpg"/>
+      <File filePath="app/images/anonymous.png"/>
     </Library>
     <Application binaryName="main" dependencies="296203105||-158894972||1782892168||191027224||1646790611" description="Mobile application (desktop build)" environment="value:FGLPROFILE=$(ProjectDir)/app/fglprofile" id="1709996732" label="main" targetDirectory="$(ProjectDir)/build/appdir">
       <VirtualFolder label="Config">
@@ -123,11 +123,11 @@
   </Group>
   <Group label="Packages" language="Genero" targetDirectory="$(ProjectDir)/build">
     <Package binaryName="contacts_android" dependencies="1709996732||-158894972" description="Contacts package for Andriod" distDirectory="$(ProjectDir)/build/package" label="contacts_android" platform="Android (arm)" rootDirectory="$(ProjectDir)/build/package">
-      <DynamicProperty name="icon-hdpi" value="$(ProjectDir)/app/resources/android/icons/anonymous_72x72.png"/>
+      <DynamicProperty name="icon-hdpi" value="$(ProjectDir)/app/resources/android/icons/dbsync_contacts_72x72.png"/>
       <DynamicProperty name="icon-ldpi" value=""/>
-      <DynamicProperty name="icon-mdpi" value="$(ProjectDir)/app/resources/android/icons/anonymous_48x48.png"/>
-      <DynamicProperty name="icon-xhdpi" value="$(ProjectDir)/app/resources/android/icons/anonymous_96x96.png"/>
-      <DynamicProperty name="icon-xxhdpi" value="$(ProjectDir)/app/resources/android/icons/anonymous_144x144.png"/>
+      <DynamicProperty name="icon-mdpi" value="$(ProjectDir)/app/resources/android/icons/dbsync_contacts_48x48.png"/>
+      <DynamicProperty name="icon-xhdpi" value="$(ProjectDir)/app/resources/android/icons/dbsync_contacts_96x96.png"/>
+      <DynamicProperty name="icon-xxhdpi" value="$(ProjectDir)/app/resources/android/icons/dbsync_contacts_144x144.png"/>
       <DynamicProperty name="packageId" value="com.fourjs.contacts"/>
       <DynamicProperty name="packageLabel" value="Contacts"/>
       <DynamicProperty name="packageName" value="contacts"/>

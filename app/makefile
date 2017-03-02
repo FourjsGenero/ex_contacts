@@ -20,7 +20,7 @@ RESOURCES=\
   contacts.4ad
 
 IMAGES=\
-  images/anonymous.jpg
+  images/anonymous.png
 
 MAIN=\
   main.42m
