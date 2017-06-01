@@ -25,7 +25,6 @@ gmabuildtool build \
     --build-app-version-code 3010 \
     --build-app-version-name "3.1" \
     --build-mode release \
-    --build-types arm,x86 \
     --build-app-icon-mdpi   resources/android/icons/dbsync_contacts_48x48.png \
     --build-app-icon-hdpi   resources/android/icons/dbsync_contacts_72x72.png \
     --build-app-icon-xhdpi  resources/android/icons/dbsync_contacts_96x96.png \

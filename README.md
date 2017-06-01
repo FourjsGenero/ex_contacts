@@ -18,6 +18,13 @@ use the contact database of the mobile device.
 
 ![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-002.png)
 
+### Prerequisites
+
+* Genero BDL 3.00+
+* Database server: Tested with Informix 11.20 and PostgreSQL 9.3.
+* Genero Mobile (GMI/GMA) >= 1.20
+* GNU make utility or Genero Studio 3.00+
+
 ### Components
 
 1. Mobile:
@@ -49,13 +56,6 @@ use the contact database of the mobile device.
 ![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-003.png)
 
 ![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-004.png)
-
-## Requirements
-
-* Database server: Tested with Informix 11.20 and PostgreSQL 9.3.
-* FGLGWS development environment >= 3.00 (for the dbsync server process)
-* Genero Mobile (GMI/GMA) >= 1.20
-* GNU make utility or Genero Studio >= 3.00
 
 
 ## The server database (UTF-8)
