@@ -110,7 +110,7 @@ PRIVATE FUNCTION open_database()
            LET source = os.Path.join(basedir, dbfile)
         END IF
     END IF
-    LET connstr = SFMT("contacts+source='%1'", source)
+    LET connstr = SFMT("contacts+source='%1'", escape_backslashes(source) )
     IF NOT base.Application.isMobile() THEN
        LET connstr = connstr, ",driver='dbmsqt'"
     END IF
@@ -122,6 +122,15 @@ PRIVATE FUNCTION open_database()
         CONNECT TO connstr AS "c1"
         CALL mkcontacts.create_database("mobile",FALSE)
     END IF
+END FUNCTION
+
+FUNCTION escape_backslashes(str)
+    DEFINE str STRING
+    DEFINE buf base.StringBuffer
+    LET buf = base.StringBuffer.create()
+    CALL buf.append(str)
+    CALL buf.replace("\\","\\\\",0)
+    RETURN buf.toString()
 END FUNCTION
 
 PRIVATE FUNCTION close_database()
