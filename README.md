@@ -98,16 +98,16 @@ $ createdb -h localhost contacts --encoding "utf-8"
 4. Build the server programs.
 5. Create server db tables: *Skip this when using the default SQLite DB server side*
   * Go to the *mkcontacts_main* application node.
-  * Edit the command line arguments in order to use your database.
+  * Edit the command line arguments in order to use your database (-d dbname -o odidriver -u user -w pswd).
   * Run the *mkcontacts_main* program to create the database tables.
 6. Configure the server database:
   * Go to the *server_config* application node.
-  * Edit the command line arguments in order to use your database.
+  * Edit the command line arguments in order to use your database (-d dbname -o odidriver -u user -w pswd).
   * Run the program.
 7. Execute the server program managing database synchronization:
   * Go to the *dbsync_contact_server* application node.
-  * Edit the command line arguments in order to use your database.
-  * Check the command line arguments for the TCP port.
+  * Edit the command line arguments in order to use your database (-d dbname -o odidriver -u user -w pswd).
+  * Check the command line arguments for the TCP port (-p port).
   * Run the program.
 
 ![Genero Contacts app (server program)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-001.png)
