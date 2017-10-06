@@ -20,10 +20,10 @@ use the contact database of the mobile device.
 
 ### Prerequisites
 
-* Genero BDL 3.00+
+* Genero BDL 3.10+
 * Database server: Tested with Informix 11.20 and PostgreSQL 9.3.
-* Genero Mobile (GMI/GMA) >= 1.20
-* GNU make utility or Genero Studio 3.00+
+* Genero Mobile (GMI/GMA) >= 1.30
+* GNU make utility or Genero Studio 3.10+
 
 ### Components
 
@@ -87,36 +87,31 @@ $ createdb -h localhost contacts --encoding "utf-8"
 
 ### Server-side programs
 
-1. Open a first Studio instance and load the *server_progs.4pw* project file.
-2. Make sure you have a valid Genero Desktop configuration.
-3. In project build rules, check the env vars for UTF-8:
-  * Set FGL_LENGTH_SEMANTICS=CHAR, to get char length semantics
-  * Set LANG/LC_ALL for a UTF-8 locale:
-    * **Warnings**
-      * On Windows you need to set LANG=.fglutf8 (you can remove LC_ALL)
-      * On MacOS you need to set LC_ALL=en_US.UTF-8 (you can remove LANG)
-4. Build the server programs.
-5. Create server db tables: *Skip this when using the default SQLite DB server side*
+1. Open a first Studio instance
+2. Make sure you have a valid GDC Desktop configuration in UTF-8 and FGL_LENGTH_SEMANTICS=CHAR length semantics.
+3. Select the GDC Desktop configuration with UTF-8 and CHAR length semantics
+4. Load the *server_progs.4pw* project file.
+5. Build the server programs.
+6. Create server db tables: *Skip this when using the default SQLite DB server side*
   * Go to the *mkcontacts_main* application node.
-  * Edit the command line arguments in order to use your database (-d dbname -o odidriver -u user -w pswd).
+  * Edit the command line arguments in order to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
+  * Eventually, add the -s command line option, to create sample data.
   * Run the *mkcontacts_main* program to create the database tables.
-6. Configure the server database:
+7. Configure the server database:
   * Go to the *server_config* application node.
-  * Edit the command line arguments in order to use your database (-d dbname -o odidriver -u user -w pswd).
+  * Edit the command line arguments in order to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
   * Run the program.
-7. Execute the server program managing database synchronization:
+8. Execute the server program managing database synchronization:
   * Go to the *dbsync_contact_server* application node.
-  * Edit the command line arguments in order to use your database (-d dbname -o odidriver -u user -w pswd).
+  * Edit the command line arguments in order to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
   * Check the command line arguments for the TCP port (-p port).
   * Run the program.
 
-![Genero Contacts app (server program)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-001.png)
-
 ### Contacts app for mobile
 
-1. Open a second Studio instance and load the *contacts.4pw* project file.
-2. Configure UTF-8 locale with char length semantics as for server programs.
-3. Configure the environment for Android or iOS.
+1. Open a second Studio instance
+2. Select the Mobile Desktop configuration for Android or iOS.
+3. Make sure that the configuration uses UTF-8 locale and FGL_LENGTH_SEMANTICS=CHAR.
 4. Build the app.
 5. Test by running the app in development mode.
 6. Deploy the contacts app to your device.

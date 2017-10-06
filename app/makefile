@@ -55,7 +55,8 @@ appdir:: all $(APPDIR)
 	$(CP) $(OTHERS) $(APPDIR)
 	$(CP) $(FORMS) $(APPDIR)
 	$(CP) $(MAIN) $(APPDIR)
-	$(CP) strings/en/contacts.42s $(APPDIR)
+	$(MKDIR) $(APPDIR)/defaults
+	$(CP) strings/en/contacts.42s $(APPDIR)/defaults
 	$(MKDIR) $(APPDIR)/fr
 	$(CP) strings/fr/contacts.42s $(APPDIR)/fr
 	$(MKDIR) $(APPDIR)/zh_TW
