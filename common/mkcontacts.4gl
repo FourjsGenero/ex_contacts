@@ -69,7 +69,7 @@ FUNCTION create_database(tp,ws)
 
     CREATE TABLE contact (
          contact_num INTEGER NOT NULL,
-         contact_rec_muser VARCHAR(10) NOT NULL,
+         contact_rec_muser VARCHAR(20) NOT NULL,
          contact_rec_mtime DATETIME YEAR TO FRACTION(3) NOT NULL,
          contact_rec_mstat CHAR(2) NOT NULL,
          contact_name VARCHAR(100) NOT NULL,
@@ -127,7 +127,7 @@ FUNCTION create_database(tp,ws)
 
     CREATE TABLE contnote (
          contnote_num INTEGER NOT NULL,
-         contnote_rec_muser VARCHAR(10) NOT NULL,
+         contnote_rec_muser VARCHAR(20) NOT NULL,
          contnote_rec_mtime DATETIME YEAR TO FRACTION(3) NOT NULL,
          contnote_rec_mstat CHAR(2) NOT NULL,
          contnote_contact INTEGER NOT NULL,

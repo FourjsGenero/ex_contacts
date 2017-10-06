@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Schema gstVersion="30a06" id="{2aeacba3-79b8-4435-a5e7-638c5b4eb222}" version="4.0">
+  <AGSettings version="1.1">
+    <DynamicProperties version="2">
+      <DynamicProperty description="Associated label when generating form" initialValue="" isDefaultInherited="false" isHidden="false" label="Label" name="label" readOnly="false" type="TEXT"/>
+      <DynamicProperty description="Associated widget" editorInfo="contains:ButtonEdit|CheckBox|ComboBox|DateEdit|DateTimeEdit|Edit|FFImage|FFLabel|Field|Phantom|ProgressBar|RadioGroup|Slider|SpinEdit|TextEdit|TimeEdit" initialValue="Edit" isDefaultInherited="false" isHidden="false" label="Widget" name="widget" readOnly="false" type="ENUM"/>
+      <DynamicPropertyGroup collapsed="false" description="Formfied properties" label="Formfield" name="formfieldGroup" properties="label;widget"/>
+    </DynamicProperties>
+    <NodeInfos version="1">
+      <NodeInfo mimeType="db/column" properties="widget;label"/>
+    </NodeInfos>
+  </AGSettings>
+  <ExtractionSettings/>
+  <Table active="true" name="city" status="U" uuid="db/table2">
+    <Column fglLength="4" fglType="2" name="city_num" notNull="true" order="1" status="U" uuid="db/column2"/>
+    <Column fglLength="30" fglType="13" name="city_name" notNull="true" order="2" status="U" uuid="db/column4"/>
+    <Column fglLength="30" fglType="13" name="city_country" notNull="true" order="3" status="U" uuid="db/column6"/>
+    <Index indexColumns="city_num" indexConstraint="primaryKey" name="PK_city_1" status="A" uuid="db/index2"/>
+  </Table>
+  <Table active="true" name="contact" status="U" uuid="db/table4">
+    <Column fglLength="4" fglType="2" name="contact_num" notNull="true" order="1" status="U" uuid="db/column8"/>
+    <Column fglLength="20" fglType="201" name="contact_rec_muser" notNull="true" order="2" status="M" uuid="db/column10"/>
+    <Column fglLength="4365" fglType="10" name="contact_rec_mtime" notNull="true" order="3" status="U" uuid="db/column12"/>
+    <Column fglLength="2" fglType="0" name="contact_rec_mstat" notNull="true" order="4" status="U" uuid="db/column14"/>
+    <Column fglLength="100" fglType="13" name="contact_name" notNull="true" order="5" status="U" uuid="db/column16"/>
+    <Column fglLength="1" fglType="0" name="contact_valid" notNull="true" order="6" status="U" uuid="db/column18"/>
+    <Column fglLength="100" fglType="13" name="contact_street" notNull="false" order="7" status="U" uuid="db/column20"/>
+    <Column fglLength="4" fglType="2" name="contact_city" notNull="true" order="8" status="U" uuid="db/column22"/>
+    <Column fglLength="40" fglType="13" name="contact_num_m" notNull="false" order="9" status="U" uuid="db/column24"/>
+    <Column fglLength="40" fglType="13" name="contact_num_w" notNull="false" order="10" status="U" uuid="db/column26"/>
+    <Column fglLength="40" fglType="13" name="contact_num_h" notNull="false" order="11" status="U" uuid="db/column28"/>
+    <Column fglLength="20" fglType="13" name="contact_user" notNull="true" order="12" status="U" uuid="db/column30"/>
+    <Column fglLength="2566" fglType="5" name="contact_loc_lon" notNull="false" order="13" status="U" uuid="db/column32"/>
+    <Column fglLength="2566" fglType="5" name="contact_loc_lat" notNull="false" order="14" status="U" uuid="db/column34"/>
+    <Column fglLength="4365" fglType="10" name="contact_photo_mtime" notNull="false" order="15" status="U" uuid="db/column36"/>
+    <Column fglLength="56" fglType="11" name="contact_photo" notNull="false" order="16" status="U" uuid="db/column38"/>
+    <Index indexColumns="contact_num" indexConstraint="primaryKey" name="PK_contact_1" status="A" uuid="db/index4"/>
+  </Table>
+  <Table active="true" name="contact_seq" status="U" uuid="db/table6">
+    <Column fglLength="10" fglType="18" name="seqserial8" notNull="true" order="1" status="U" uuid="db/column40"/>
+  </Table>
+  <Table active="true" name="contnote" status="U" uuid="db/table8">
+    <Column fglLength="4" fglType="2" name="contnote_num" notNull="true" order="1" status="U" uuid="db/column42"/>
+    <Column fglLength="20" fglType="201" name="contnote_rec_muser" notNull="true" order="2" status="M" uuid="db/column44"/>
+    <Column fglLength="4365" fglType="10" name="contnote_rec_mtime" notNull="true" order="3" status="U" uuid="db/column46"/>
+    <Column fglLength="2" fglType="0" name="contnote_rec_mstat" notNull="true" order="4" status="U" uuid="db/column48"/>
+    <Column fglLength="4" fglType="2" name="contnote_contact" notNull="true" order="5" status="U" uuid="db/column50"/>
+    <Column fglLength="4365" fglType="10" name="contnote_when" notNull="true" order="6" status="U" uuid="db/column52"/>
+    <Column fglLength="250" fglType="13" name="contnote_text" notNull="false" order="7" status="U" uuid="db/column54"/>
+    <Index indexColumns="contnote_num" indexConstraint="primaryKey" name="PK_contnote_1" status="A" uuid="db/index6"/>
+  </Table>
+  <Table active="true" name="contnote_seq" status="U" uuid="db/table10">
+    <Column fglLength="10" fglType="18" name="seqserial8" notNull="true" order="1" status="U" uuid="db/column56"/>
+  </Table>
+  <Table active="true" name="datafilter" status="U" uuid="db/table12">
+    <Column fglLength="20" fglType="13" name="user_id" notNull="true" order="1" status="U" uuid="db/column58"/>
+    <Column fglLength="50" fglType="13" name="table_name" notNull="true" order="2" status="U" uuid="db/column60"/>
+    <Column fglLength="4365" fglType="10" name="last_mtime" notNull="true" order="3" status="U" uuid="db/column62"/>
+    <Column fglLength="4365" fglType="10" name="temp_mtime" notNull="false" order="4" status="U" uuid="db/column64"/>
+    <Column fglLength="250" fglType="13" name="where_part" notNull="false" order="5" status="U" uuid="db/column66"/>
+    <Index indexColumns="user_id, table_name" indexConstraint="primaryKey" name="PK_datafilter_1" status="A" uuid="db/index10"/>
+  </Table>
+  <Table active="true" name="users" status="U" uuid="db/table14">
+    <Column fglLength="20" fglType="13" name="user_id" notNull="true" order="1" status="U" uuid="db/column68"/>
+    <Column fglLength="200" fglType="13" name="user_auth" notNull="false" order="2" status="U" uuid="db/column70"/>
+    <Column fglLength="100" fglType="13" name="user_name" notNull="true" order="3" status="U" uuid="db/column72"/>
+    <Column fglLength="2" fglType="1" name="user_status" notNull="true" order="4" status="U" uuid="db/column74"/>
+    <Index indexColumns="user_id" indexConstraint="primaryKey" name="PK_users_1" status="A" uuid="db/index8"/>
+  </Table>
+  <ForeignKey cascadeDelete="false" fkColumns="contnote_contact" fkRefColumns="contact_num" name="FK_contnote_contact_1" refTable="contact" status="A" table="contnote" uuid="db/foreignkey2"/>
+  <ForeignKey cascadeDelete="false" fkColumns="user_id" fkRefColumns="user_id" name="FK_datafilter_users_1" refTable="users" status="A" table="datafilter" uuid="db/foreignkey4"/>
+  <ForeignKey cascadeDelete="false" fkColumns="contact_city" fkRefColumns="city_num" name="FK_contact_city_1" refTable="city" status="A" table="contact" uuid="db/foreignkey6"/>
+  <ForeignKey cascadeDelete="false" fkColumns="contact_rec_muser" fkRefColumns="user_id" name="FK_contact_users_1" refTable="users" status="A" table="contact" uuid="db/foreignkey8"/>
+  <ForeignKey cascadeDelete="false" fkColumns="contnote_rec_muser" fkRefColumns="user_id" name="FK_contnote_users_1" refTable="users" status="A" table="contnote" uuid="db/foreignkey10"/>
+  <ForeignKey cascadeDelete="false" fkColumns="contact_user" fkRefColumns="user_id" name="FK_contact_users_2" refTable="users" status="A" table="contact" uuid="db/foreignkey12"/>
+  <Views ActiveView="View-1" showLabels="true">
+    <View Name="View-1">
+      <Layout>
+        <![CDATA[AAAAAgAAABQAZABiAC8AdABhAGIAbABlADEAMkB9kXRdF0XYQENwfB8Hwcs/x41P3ztkXwEAAAAUAGQAYgAvAHQAYQBiAGwAZQAxADBAi5qqqqqqrUB8tNk2TZNmP8zMzMzMzNMBAAAAEgBkAGIALwB0AGEAYgBsAGUANkByUAAAAAABQIIVk2TZNk4/zvnbItDlZwEAAAASAGQAYgAvAHQAYQBiAGwAZQAywFTXRdF0XRtAe7wfB8Hwfz/Qo9cKPXCnAQAAABIAZABiAC8AdABhAGIAbABlADhAi51VVVVVVkBxVF0XRdF2P8xqfvnbItcBAAAAFABkAGIALwB0AGEAYgBsAGUAMQA0wEzdF0XRdF5APaLoui6LkD/C8an752yPAQAAABIAZABiAC8AdABhAGIAbABlADRAcfdF0XRdGUBsw+D4Pg+NP86XjU/fO2sB]]>
+      </Layout>
+    </View>
+  </Views>
+  <DBData>
+    <Data path="db/column10@fglLength" type="2" value="10"/>
+    <Data path="db/column10@fglType" type="2" value="13"/>
+    <Data path="db/column44@fglLength" type="2" value="10"/>
+    <Data path="db/column44@fglType" type="2" value="13"/>
+  </DBData>
+</Schema>
