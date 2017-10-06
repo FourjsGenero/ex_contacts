@@ -80,7 +80,7 @@ $ dbaccess - -
 To create a UTF-8 database on the server with PostgreSQL:
 
 ```
-$ createdb -h localhost contacts --encoding "utf-8"
+$ createdb contacts --template=template0 --encoding=utf8 --locale=en_US.utf8
 ```
 
 ## Using Genero Studio projects
