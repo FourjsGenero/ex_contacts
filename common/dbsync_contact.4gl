@@ -333,6 +333,8 @@ PRIVATE FUNCTION get_contact_geoloc(c_num, c_street, c_city, c_pos)
            c_city_name LIKE city.city_name,
            a_pos t_geoloc_position
 
+    LET c_num = NULL -- Unused for now
+
     IF c_city==1000 THEN
        RETURN c_pos.*
     END IF
@@ -444,6 +446,8 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
            r_contnote RECORD LIKE contnote.*,
            selist_res t_selist,
            result, query STRING
+
+    LET first_sync = FALSE -- Unused for now
 
     LET r = 0
 
@@ -896,7 +900,7 @@ PRIVATE FUNCTION json_fetch_contact(mode, num)
            RETURN "success", util.JSON.stringify(r_contact)
       WHEN sqlstat==NOTFOUND
            RETURN "contact_notfound", NULL
-      WHEN sqlstat<0
+      OTHERWISE
            RETURN "sql_error", sqlstat
     END CASE
 END FUNCTION
@@ -913,7 +917,7 @@ PRIVATE FUNCTION json_fetch_contnote(num)
            RETURN "success", util.JSON.stringify(r_contnote)
       WHEN sqlstat==NOTFOUND
            RETURN "contnote_notfound", NULL
-      WHEN sqlstat<0
+      OTHERWISE
            RETURN "sql_error", sqlstat
     END CASE
 END FUNCTION
@@ -1480,6 +1484,8 @@ PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
            resinfo t_resinfo,
            numlistdet t_numlistdet,
            i, x, s INTEGER, desc STRING
+
+    LET user_id = NULL -- Unused for now
 
     IF selist_res.command IS NULL THEN
        RETURN 0, NULL

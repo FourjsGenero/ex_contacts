@@ -284,7 +284,7 @@ PRIVATE FUNCTION contlist_options(d)
                  COMMAND "Stress test"
                     MENU "Stress test" ATTRIBUTES(STYLE="dialog")
                         COMMAND "More"  CALL stress_test(d)
-                        COMMAND "Clean" CALL stress_clean(d)
+                        COMMAND "Clean" CALL stress_clean()
                     END MENU
                  ON ACTION cancel ATTRIBUTES(TEXT=%"contacts.contlist_options_menu.cancel")
                     EXIT MENU
@@ -307,8 +307,7 @@ PRIVATE FUNCTION clear_garbage(d)
     CALL d.setCurrentRow("sr",1)
 END FUNCTION
 
-PRIVATE FUNCTION stress_clean(d)
-    DEFINE d ui.Dialog
+PRIVATE FUNCTION stress_clean()
     DEFINE x INTEGER, r BOOLEAN
     FOR x = 1 TO contlist.getLength()
         IF contlist[x].contact_name LIKE "Upd:%"
@@ -635,6 +634,7 @@ END FUNCTION
 
 PRIVATE FUNCTION contrec_to_controw(row, new)
     DEFINE row INT, new BOOLEAN
+    LET new = NULL -- Unused for now
     LET contlist[row].contact_num = curr_contact.contact_num
     LET contlist[row].contact_rec_muser = curr_contact.contact_rec_muser
     LET contlist[row].contact_rec_mtime = curr_contact.contact_rec_mtime
