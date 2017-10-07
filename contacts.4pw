@@ -76,7 +76,8 @@
       <File excludeFromLink="true" filePath="common/libutil.4gl"/>
       <File excludeFromLink="true" filePath="common/mkcontacts.4gl"/>
     </Library>
-    <Library binaryName="database" id="296203105" label="database">
+    <Library binaryName="database" excludeFromBuild="true" id="296203105" label="database">
+      <File filePath="common/contacts.4db"/>
       <File filePath="common/contacts.sch"/>
     </Library>
     <Library binaryName="images" excludeFromBuild="true" id="-1144417370" label="images" targetDirectory="$(ProjectDir)/build/appdir">

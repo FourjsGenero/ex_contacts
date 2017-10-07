@@ -81,8 +81,8 @@
     </Library>
     <Library binaryName="Database" excludeFromBuild="true" id="296203105" label="Database">
       <File filePath="common/contacts.4db"/>
-      <File excludeFromCompilation="true" excludeFromLink="true" filePath="common/contacts.sch"/>
-      <File excludeFromCompilation="true" excludeFromLink="true" filePath="server/contacts.sqlite"/>
+      <File filePath="common/contacts.sch"/>
+      <File filePath="server/contacts.sqlite"/>
     </Library>
     <Application binaryName="dbsync_contact_server" commandLineArguments="-d contacts -o dbmsqt -f contacts.sqlite -p 8090 -v" dependencies="296203105,-158894972" description="DBSync Web Services program" id="-770139336" label="dbsync_contact_server">
       <File excludeFromLink="true" filePath="server/dbsync_contact_server.4gl"/>
