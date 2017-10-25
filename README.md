@@ -322,6 +322,13 @@ images in the $PWD/bfn_tmp directory):
 $ export FGLIMAGEPATH=$FGLDIR/lib/image2font.txt:$PWD/images:$PWD
 ```
 
+Set FGLRESOURCEPATH to find the string resource files. For example,
+to get the English strings:
+
+```
+$ export FGLRESOURCEPATH=$PWD/defaults
+```
+
 Set the IP address of the mobile device:
 
 ```
