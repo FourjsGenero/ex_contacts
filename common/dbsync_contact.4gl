@@ -101,9 +101,7 @@ PRIVATE FUNCTION send_post_command(selist)
         CALL http_req.setMethod("POST")
         CALL http_req.setCharset("UTF-8")
         CALL http_req.setHeader("DBSync-Client","contact")
-        IF libutil.mobile_type() != "GMI" THEN --FIXME? iOS does not support gzip...
-           CALL http_req.setHeader("Content-Encoding","gzip")
-        END IF
+        CALL http_req.setHeader("Content-Encoding","gzip")
         IF sync_format=="xml" THEN
            CALL http_req.doXmlRequest(d)
         ELSE

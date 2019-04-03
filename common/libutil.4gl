@@ -38,14 +38,6 @@ PRIVATE DEFINE bfn_list DYNAMIC ARRAY OF RECORD
                   name STRING
                END RECORD
 
-FUNCTION mobile_type()
-    IF base.Application.isMobile() THEN
-       RETURN ui.Interface.getFrontEndName()
-    ELSE
-       RETURN "SERVER"
-    END IF
-END FUNCTION
-
 -- Check UTF-8 and char length semantics: Works only on server.
 FUNCTION check_utf8()
     IF ORD("€") == 8364 AND LENGTH("€") == 1 THEN
@@ -513,9 +505,7 @@ FUNCTION dbsynclog_show()
     OPEN WINDOW w_synclog WITH FORM "list1" ATTRIBUTES(TEXT=%"logform.title")
     DISPLAY ARRAY arr TO sr.*
         ATTRIBUTES(UNBUFFERED, ACCEPT=FALSE)
-        ON ACTION clear
-            -- FIXME: To allow 2.50 compilation for server-side programs...
-            --ATTRIBUTES(TEXT=%"logform.action.clear")
+        ON ACTION clear ATTRIBUTES(TEXT=%"logform.action.clear")
            CALL DIALOG.deleteAllRows("sr")
            CALL dbsynclog.clear()
            MESSAGE %"contacts.mess.synclogclr"
