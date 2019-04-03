@@ -38,22 +38,12 @@ PRIVATE DEFINE bfn_list DYNAMIC ARRAY OF RECORD
                   name STRING
                END RECORD
 
-PRIVATE DEFINE mobile_type STRING
-
 FUNCTION mobile_type()
-    IF mobile_type IS NOT NULL THEN
-       RETURN mobile_type
-    END IF
-    IF NOT base.Application.isMobile() THEN
-       LET mobile_type = "SERVER"
+    IF base.Application.isMobile() THEN
+       RETURN ui.Interface.getFrontEndName()
     ELSE
-       TRY
-          CALL ui.Interface.frontCall("standard","feinfo","fename",[mobile_type])
-       CATCH
-          LET mobile_type = "ERROR"
-       END TRY
+       RETURN "SERVER"
     END IF
-    RETURN mobile_type
 END FUNCTION
 
 -- Check UTF-8 and char length semantics: Works only on server.
