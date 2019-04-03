@@ -45,20 +45,6 @@ FUNCTION check_utf8()
     ELSE
        RETURN -1, "Application locale must be UTF-8, with char length semantics"
     END IF
-{
-    DEFINE ch base.Channel, data STRING
-    LET ch = base.Channel.create()
-    CALL ch.openPipe("fglrun -i mbcs 2>&1", "r")
-    LET data = ch.readLine()
-    IF data NOT MATCHES "*UTF-8*" THEN
-       RETURN -1, "Application locale must be UTF-8"
-    END IF
-    LET data = fgl_getenv("FGL_LENGTH_SEMANTICS")
-    IF data IS NULL OR data != "CHAR" THEN
-       RETURN -2, "Application length semantics must be CHAR"
-    END IF
-    RETURN 0, NULL
-}
 END FUNCTION
 
 -- Connection
