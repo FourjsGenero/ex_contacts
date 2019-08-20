@@ -20,10 +20,10 @@ use the contact database of the mobile device.
 
 ### Prerequisites
 
-* Genero BDL 3.10+
+* Genero BDL 3.20+
 * Database server: Tested with Informix 11.20 and PostgreSQL 9.3.
-* Genero Mobile (GMI/GMA) >= 1.30
-* GNU make utility or Genero Studio 3.10+
+* Genero Mobile (GMI/GMA) >= 1.40
+* GNU make utility or Genero Studio 3.20+
 
 ### Components
 
@@ -123,11 +123,10 @@ $ createdb contacts --template=template0 --encoding=utf8 --locale=en_US.utf8
 
 ### Setup Genero BDL environment
 
-Setup Genero BDL 3.00+ environment
+Setup Genero BDL environment, check the version:
 
 ```
 $ fglrun -V
-fglrun 3.00 .....
 ```
 
 Define the correct locale and length semantics: UTF-8 + CLS
@@ -265,6 +264,8 @@ $ sh build_gma.sh
 
 See shell for required settings and generated APK.
 
+Then install the APK on your device.
+
 For iOS:
 
 ```
@@ -278,6 +279,8 @@ $ sh build_gmi.sh
 ```
 
 See shell for required settings and generated IPA.
+
+Then install the IPA on your device.
 
 
 ### Starting the mobile app
