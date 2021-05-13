@@ -127,14 +127,14 @@ END MAIN
 FUNCTION check_sql(tabname, where_part)
     DEFINE tabname, where_part STRING
     DEFINE sql STRING, cnt INTEGER
-    IF LENGTH(where_part)==0 THEN RETURN TRUE END IF
+    IF length(where_part)==0 THEN RETURN TRUE END IF
     LET sql = SFMT("SELECT COUNT(*) FROM %1 WHERE %2", tabname, where_part)
     TRY
         PREPARE s_check FROM sql
         EXECUTE s_check INTO cnt
         CALL mbox_ok(SFMT("%1 rows matching this where part", cnt))
     CATCH
-        CALL mbox_ok(SFMT("Invalid SQL where part:\n(SQLCODE=%1) %2",SQLCA.SQLCODE,SQLERRMESSAGE))
+        CALL mbox_ok(SFMT("Invalid SQL where part:\n(SQLCODE=%1) %2",sqlca.sqlcode,SQLERRMESSAGE))
         RETURN FALSE
     END TRY
     RETURN TRUE
@@ -155,7 +155,7 @@ FUNCTION edit_user(new)
            IF new THEN
               SELECT user_id FROM users
                      WHERE user_id = r_user.user_id
-              IF SQLCA.SQLCODE == 0 THEN
+              IF sqlca.sqlcode == 0 THEN
                  ERROR "User id exists already"
                  NEXT FIELD user_id
               END IF

@@ -90,7 +90,7 @@ PRIVATE FUNCTION save_current_note()
     END IF
     LET notelist[curr_row].contnote_text = rec.contnote_text
     IF is_new THEN
-       IF LENGTH(rec.contnote_text CLIPPED) > 0 THEN
+       IF length(rec.contnote_text CLIPPED) > 0 THEN
           CALL set_mrec_change(curr_row,"N")
           INSERT INTO contnote (
              contnote_num,
@@ -114,7 +114,7 @@ PRIVATE FUNCTION save_current_note()
        END IF
        LET is_new = FALSE
     ELSE
-       IF LENGTH(rec.contnote_text CLIPPED) > 0 THEN
+       IF length(rec.contnote_text CLIPPED) > 0 THEN
           IF notelist[curr_row].contnote_rec_mstat != "N" THEN
              CALL set_mrec_change(curr_row,"U")
           END IF

@@ -80,7 +80,7 @@ END FUNCTION
 
 FUNCTION start_http(port)
     DEFINE port INTEGER
-    DEFINE req com.HTTPServiceRequest,
+    DEFINE req com.HttpServiceRequest,
            uri STRING
 
     -- Normally, the port is set by the GAS for load balancing
@@ -94,14 +94,14 @@ FUNCTION start_http(port)
 
     WHILE TRUE
        TRY -- We can get -15565 if the GAS closes the TCP socket
-          LET req = com.WebServiceEngine.getHTTPServiceRequest(20)
+          LET req = com.WebServiceEngine.GetHTTPServiceRequest(20)
        CATCH
-          IF STATUS==-15565 THEN
+          IF status==-15565 THEN
              CALL show_verb("TCP socket probably closed by GAS, stopping dbsync server process...")
              EXIT PROGRAM 0
           ELSE
-             DISPLAY "Unexpected getHTTPServiceRequest() exception: ", STATUS
-             DISPLAY "Reason: ", SQLCA.SQLERRM
+             DISPLAY "Unexpected getHTTPServiceRequest() exception: ", status
+             DISPLAY "Reason: ", sqlca.sqlerrm
              EXIT PROGRAM 1
           END IF
        END TRY
@@ -110,7 +110,7 @@ FUNCTION start_http(port)
           CONTINUE WHILE
        END IF
        # Dispatch according to service URI
-       LET uri = req.getURL()
+       LET uri = req.getUrl()
        IF uri.getIndexOf(SERVICE_STOP,1)>1 THEN
           CALL req.sendTextResponse(200,NULL,"Service stopped")
           EXIT WHILE
@@ -122,7 +122,7 @@ FUNCTION start_http(port)
 END FUNCTION
 
 FUNCTION process_request(uri, req)
-  DEFINE uri STRING, req com.HTTPServiceRequest
+  DEFINE uri STRING, req com.HttpServiceRequest
   DEFINE method, header, format, cmd, res STRING,
          selist, selist_res dbsync_contact.t_selist,
          doc xml.DomDocument,
@@ -173,14 +173,14 @@ FUNCTION process_request(uri, req)
      TRY
        LET cmd = req.readTextRequest()
      CATCH
-       CALL show_err(SFMT("Unexpected HTTP request read exception: %1", STATUS))
+       CALL show_err(SFMT("Unexpected HTTP request read exception: %1", status))
      END TRY
      CALL show_verb( SFMT("json cmd [%1] (%2 Chars): %3",
                           CURRENT YEAR TO FRACTION, cmd.getLength(), util.JSON.format(cmd)) )
      TRY
        CALL util.JSON.parse(cmd,selist)
      CATCH
-       CALL show_err(SFMT("JSON parsing error: %1", STATUS))
+       CALL show_err(SFMT("JSON parsing error: %1", status))
        CALL req.sendTextResponse(500,NULL,"JSON parsing error")
      END TRY
     ELSE -- xml
@@ -188,9 +188,9 @@ FUNCTION process_request(uri, req)
        LET doc = req.readXmlRequest()
        CALL show_verb( SFMT("xml cmd [%1] : %2",
                             CURRENT YEAR TO FRACTION, doc.saveToString()) )
-       CALL xml.serializer.DomToVariable(doc.getDocumentElement(),selist)
+       CALL xml.Serializer.DomToVariable(doc.getDocumentElement(),selist)
      CATCH
-       CALL show_err(SFMT("XML deserialization failed: %1", STATUS))
+       CALL show_err(SFMT("XML deserialization failed: %1", status))
        CALL req.sendTextResponse(500,NULL,"XML deserialization ")
      END TRY
     END IF
@@ -211,7 +211,7 @@ FUNCTION process_request(uri, req)
        CALL show_verb( SFMT("json res [%1] (%2 Chars): %3",
                        CURRENT YEAR TO FRACTION, res.getLength(), util.JSON.format(res) ))
      CATCH
-       CALL show_err(SFMT("JSON stringify error: %1", STATUS))
+       CALL show_err(SFMT("JSON stringify error: %1", status))
        CALL req.sendTextResponse(500,NULL,"JSON stringify error")
        RETURN -4
      END TRY
@@ -224,7 +224,7 @@ FUNCTION process_request(uri, req)
        CALL show_verb( SFMT("xml res [%1] : %2",
                             CURRENT YEAR TO FRACTION, doc.saveToString() ))
      CATCH
-       CALL show_err(SFMT("XML serialization failed: %1", STATUS))
+       CALL show_err(SFMT("XML serialization failed: %1", status))
        CALL req.sendTextResponse(500,NULL,"XML serialization failed")
        RETURN -4
      END TRY
@@ -237,7 +237,7 @@ FUNCTION process_request(uri, req)
   IF format=="json" THEN
      CALL req.sendTextResponse(200,NULL,res)
   ELSE -- xml
-     CALL req.sendXMLResponse(200,NULL,doc)
+     CALL req.sendXmlResponse(200,NULL,doc)
   END IF
 
   RETURN 0

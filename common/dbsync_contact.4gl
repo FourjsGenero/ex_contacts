@@ -74,8 +74,8 @@ END FUNCTION
 PRIVATE FUNCTION send_post_command(selist)
     DEFINE selist t_selist
     DEFINE selist_res t_selist,
-           http_req com.HTTPRequest,
-           http_resp com.HTTPResponse,
+           http_req com.HttpRequest,
+           http_resp com.HttpResponse,
            d xml.DomDocument,
            n xml.DomNode,
            json STRING,
@@ -95,9 +95,9 @@ PRIVATE FUNCTION send_post_command(selist)
         ELSE
            LET json = util.JSON.stringify(selist)
         END IF
-        LET http_req = com.HTTPRequest.Create(sync_url)
-        CALL http_req.setConnectionTimeout(10)
-        CALL http_req.setTimeout(60)
+        LET http_req = com.HttpRequest.Create(sync_url)
+        CALL http_req.setConnectionTimeOut(10)
+        CALL http_req.setTimeOut(60)
         CALL http_req.setMethod("POST")
         CALL http_req.setCharset("UTF-8")
         CALL http_req.setHeader("DBSync-Client","contact")
@@ -123,7 +123,7 @@ PRIVATE FUNCTION send_post_command(selist)
            LET err = NULL
         END IF
     CATCH
-        LET err = SFMT("HTTP POST request error: STATUS=%1 (%2)",STATUS,SQLCA.SQLERRM)
+        LET err = SFMT("HTTP POST request error: STATUS=%1 (%2)",status,sqlca.sqlerrm)
         INITIALIZE selist_res TO NULL
     END TRY
     RETURN err, selist_res.*
@@ -132,8 +132,8 @@ END FUNCTION
 PRIVATE FUNCTION send_get_request(command, query)
     DEFINE command, query STRING
     DEFINE selist_res t_selist,
-           http_req com.HTTPRequest,
-           http_resp com.HTTPResponse,
+           http_req com.HttpRequest,
+           http_resp com.HttpResponse,
            d xml.DomDocument,
            uri, err STRING
 
@@ -145,9 +145,9 @@ PRIVATE FUNCTION send_get_request(command, query)
     LET uri = SFMT("%1/%2", sync_url, command)
 
     TRY
-        LET http_req = com.HTTPRequest.Create(uri)
-        CALL http_req.setConnectionTimeout(10)
-        CALL http_req.setTimeout(60)
+        LET http_req = com.HttpRequest.Create(uri)
+        CALL http_req.setConnectionTimeOut(10)
+        CALL http_req.setTimeOut(60)
         CALL http_req.setMethod("GET")
         CALL http_req.setCharset("UTF-8")
         CALL http_req.setHeader("DBSync-Client","contact")
@@ -168,7 +168,7 @@ PRIVATE FUNCTION send_get_request(command, query)
            LET err = NULL
         END IF
     CATCH
-        LET err = SFMT("HTTP GET request error: STATUS=%1 (%2)",STATUS,SQLCA.SQLERRM)
+        LET err = SFMT("HTTP GET request error: STATUS=%1 (%2)",status,sqlca.sqlerrm)
         INITIALIZE selist_res TO NULL
     END TRY
     RETURN err, selist_res.*
@@ -290,7 +290,7 @@ PRIVATE FUNCTION do_bind_user(uid, cnum, last_mtime, curr_mtime, events)
     WHENEVER ERROR CONTINUE
     SELECT contact_num INTO old_cnum
       FROM contact WHERE contact_user = uid
-    IF SQLCA.SQLCODE==0 THEN -- found
+    IF sqlca.sqlcode==0 THEN -- found
        IF old_cnum != cnum THEN
           -- Unbind uid from old contact 
           UPDATE contact
@@ -314,7 +314,7 @@ PRIVATE FUNCTION do_bind_user(uid, cnum, last_mtime, curr_mtime, events)
         WHERE contact_num = cnum
           AND contact_rec_mtime <= last_mtime
           AND contact_user = v_undef -- Do not overwrite another user id!
-       IF SQLCA.SQLCODE!=0 OR SQLCA.SQLERRD[3]!=1 THEN
+       IF sqlca.sqlcode!=0 OR sqlca.sqlerrd[3]!=1 THEN
           LET status = "bind_user_failed"
        END IF
     END IF
@@ -394,7 +394,7 @@ PRIVATE FUNCTION do_update_geoloc(uid, ps, curr_mtime)
            contact_loc_lon = pos.longitude,
            contact_loc_lat = pos.latitude
      WHERE contact_user = uid
-    IF SQLCA.SQLCODE!=0 OR SQLCA.SQLERRD[3]!=1 THEN
+    IF sqlca.sqlcode!=0 OR sqlca.sqlerrd[3]!=1 THEN
        LET status = "update_geoloc_failed"
     END IF
     WHENEVER ERROR STOP
@@ -793,20 +793,20 @@ PRIVATE FUNCTION parse_get_request_uri(uri)
 
     LET x = uri.getIndexOf("get_contact_1?user_id=",1)
     IF x>0 THEN
-       LET x = x + LENGTH("get_contact_1?")
+       LET x = x + length("get_contact_1?")
        LET query = uri.subString(x, uri.getLength())
        LET req_type = "get_contact_1"
     END IF
     LET x = uri.getIndexOf("get_contact_2?user_id=",1)
     IF x>0 THEN
-       LET x = x + LENGTH("get_contact_2?")
+       LET x = x + length("get_contact_2?")
        LET query = uri.subString(x, uri.getLength())
        LET req_type = "get_contact_2"
     END IF
 
     LET x = uri.getIndexOf("get_contnote?user_id=",1)
     IF x>0 THEN
-       LET x = x + LENGTH("get_contnote?")
+       LET x = x + length("get_contnote?")
        LET query = uri.subString(x, uri.getLength())
        LET req_type = "get_contnote"
     END IF
@@ -909,7 +909,7 @@ PRIVATE FUNCTION json_fetch_contnote(num)
            sqlstat INTEGER
     SELECT contnote.* INTO r_contnote.* FROM contnote
            WHERE contnote_num = num
-    LET sqlstat = SQLCA.SQLCODE
+    LET sqlstat = sqlca.sqlcode
     CASE
       WHEN sqlstat==0
            RETURN "success", util.JSON.stringify(r_contnote)
@@ -966,9 +966,9 @@ PRIVATE FUNCTION do_select_contact(mode, cnum)
              FROM contact
             WHERE contact_num = cnum
        END IF
-       LET sqlstat = SQLCA.SQLCODE -- NOTFOUND does not raise error
+       LET sqlstat = sqlca.sqlcode -- NOTFOUND does not raise error
     CATCH
-       LET sqlstat = SQLCA.SQLCODE
+       LET sqlstat = sqlca.sqlcode
     END TRY
     RETURN sqlstat, r_contact.*
 END FUNCTION
@@ -1018,7 +1018,7 @@ PRIVATE FUNCTION do_update_contact(mode, r_contact)
           END IF
        END IF
     CATCH
-       LET r = SQLCA.SQLCODE
+       LET r = sqlca.sqlcode
     END TRY
     RETURN r
 END FUNCTION
@@ -1075,7 +1075,7 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                BEGIN WORK
                OPEN c_update USING r_contact.contact_num
                FETCH c_update INTO tmp_muser, tmp_mtime
-               IF SQLCA.SQLCODE==NOTFOUND THEN
+               IF sqlca.sqlcode==NOTFOUND THEN
                   -- Phantom: The row does no more exist...
                   LET mres="delete_contact_phantom"
                ELSE
@@ -1167,7 +1167,7 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                 WHERE contact_num = r_contact.contact_num
                   AND ( contact_rec_mtime <= last_mtime
                         OR contact_rec_muser = uid ) -- Avoid conflicts with same user (geoloc updates)
-               IF SQLCA.SQLERRD[3]==1 THEN
+               IF sqlca.sqlerrd[3]==1 THEN
                   -- Row found and not updated since last sync
                   LET r_contact.contact_rec_mstat = "S"
                   -- Get geo location according to address
@@ -1198,7 +1198,7 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                   SELECT contact_num INTO num
                     FROM contact
                    WHERE contact_num = r_contact.contact_num
-                  IF SQLCA.SQLCODE==NOTFOUND THEN
+                  IF sqlca.sqlcode==NOTFOUND THEN
                      -- Phantom: The row does no more exist...
                      LET mres="update_contact_phantom"
                   ELSE
@@ -1232,14 +1232,14 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                DELETE FROM contnote
                  WHERE contnote_num = r_contnote.contnote_num
                    AND contnote_rec_mtime <= last_mtime
-               IF SQLCA.SQLERRD[3]==1 THEN
+               IF sqlca.sqlerrd[3]==1 THEN
                   -- Row found and not updated since last sync
                   LET mres="delete_contnote_success"
                ELSE
                   SELECT contnote_num INTO num
                     FROM contnote
                    WHERE contnote_num = r_contnote.contnote_num
-                  IF SQLCA.SQLCODE==NOTFOUND THEN
+                  IF sqlca.sqlcode==NOTFOUND THEN
                      -- Phantom: The row does no more exist...
                      LET mres="delete_contnote_phantom"
                   ELSE
@@ -1272,7 +1272,7 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                -- Make sure contact master record still exists and lock it...
                OPEN c_update USING r_contnote.contnote_contact
                FETCH c_update INTO tmp_muser, tmp_mtime
-               IF SQLCA.SQLCODE==NOTFOUND THEN
+               IF sqlca.sqlcode==NOTFOUND THEN
                   -- Phantom: The master record does no more exist...
                   LET mres="create_contnote_phantom_contact"
                   COMMIT WORK
@@ -1326,7 +1326,7 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                          contnote_text = r_contnote.contnote_text
                 WHERE contnote_num = r_contnote.contnote_num
                   AND contnote_rec_mtime <= last_mtime
-               IF SQLCA.SQLERRD[3]==1 THEN
+               IF sqlca.sqlerrd[3]==1 THEN
                   -- Row found and not updated since last sync
                   LET mres="update_contnote_success"
                   LET updlist_contnote[updlist_contnote.getLength()+1] = r_contnote.contnote_num
@@ -1334,7 +1334,7 @@ PRIVATE FUNCTION do_mobile_changes(uid,
                   SELECT contnote_num INTO num
                     FROM contnote
                    WHERE contnote_num = r_contnote.contnote_num
-                  IF SQLCA.SQLCODE==NOTFOUND THEN
+                  IF sqlca.sqlcode==NOTFOUND THEN
                      -- Phantom: The row does no more exist...
                      LET mres="update_contnote_phantom"
                   ELSE
@@ -1614,7 +1614,7 @@ PRIVATE FUNCTION refresh_contact(mode, r_contact)
     DEFINE x, r INTEGER
     SELECT contact_num INTO x
       FROM contact WHERE contact_num = r_contact.contact_num
-    IF SQLCA.SQLCODE == 100 THEN
+    IF sqlca.sqlcode == 100 THEN
        INSERT INTO contact VALUES (r_contact.*)
     ELSE
        LET r = do_update_contact( mode, r_contact.* )
@@ -1626,7 +1626,7 @@ PRIVATE FUNCTION refresh_contnote(rec)
     DEFINE x INTEGER
     SELECT contnote_num INTO x
       FROM contnote WHERE contnote_num = rec.contnote_num
-    IF SQLCA.SQLCODE == 100 THEN
+    IF sqlca.sqlcode == 100 THEN
        INSERT INTO contnote VALUES (rec.*)
     ELSE
        UPDATE contnote SET contnote.* = rec.*
@@ -1892,8 +1892,8 @@ PRIVATE FUNCTION geocod_find_coord(address,city)
     DEFINE position t_geoloc_position
     DEFINE s SMALLINT,
            query_uri STRING,
-           http_req com.HTTPRequest,
-           http_resp com.HTTPResponse,
+           http_req com.HttpRequest,
+           http_resp com.HttpResponse,
            tmp, result STRING,
            j_response util.JSONObject,
            j_results util.JSONArray,
@@ -1914,9 +1914,9 @@ PRIVATE FUNCTION geocod_find_coord(address,city)
         )
 
     TRY
-        LET http_req = com.HTTPRequest.Create(query_uri)
-        CALL http_req.setConnectionTimeout(5)
-        CALL http_req.setTimeout(5)
+        LET http_req = com.HttpRequest.Create(query_uri)
+        CALL http_req.setConnectionTimeOut(5)
+        CALL http_req.setTimeOut(5)
         CALL http_req.doRequest()
         LET http_resp = http_req.getResponse()
         IF http_resp.getStatusCode() != 200 THEN

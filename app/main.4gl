@@ -424,10 +424,10 @@ PRIVATE FUNCTION call_contact(row)
     IF num IS NOT NULL THEN
        WHENEVER ERROR CONTINUE
        LET num = "tel:"||num
-       CALL ui.interface.frontcall("standard","launchurl",[num],[res])
+       CALL ui.Interface.frontCall("standard","launchurl",[num],[res])
        WHENEVER ERROR STOP
-       IF STATUS THEN
-          ERROR "Could not initiate call: ", STATUS
+       IF status THEN
+          ERROR "Could not initiate call: ", status
        END IF
     END IF
 
@@ -589,7 +589,7 @@ PRIVATE FUNCTION check_city()
        FROM city
       WHERE city_name||", "||city_country LIKE name
          OR city_name LIKE name
-    IF SQLCA.SQLCODE==NOTFOUND THEN
+    IF sqlca.sqlcode==NOTFOUND THEN
        LET r_num = -1
        LET r_desc = curr_contact.city_desc
     END IF
@@ -601,7 +601,7 @@ PRIVATE FUNCTION byte_image_file_name(num, ts)
     DEFINE id, fs STRING, s INTEGER
     LET fs = os.Path.join(BFN_DIRECTORY, "photo_%1_%2")
     IF NOT os.Path.exists(BFN_DIRECTORY) THEN
-       LET s = os.Path.mkDir(BFN_DIRECTORY)
+       LET s = os.Path.mkdir(BFN_DIRECTORY)
     END IF
     IF num < 0 THEN -- local records have negative numbers
        LET id = "m_"||(-num)
@@ -704,7 +704,7 @@ PRIVATE FUNCTION edit_contact(row, new)
               CALL check_city()
                    RETURNING curr_contact.contact_city,
                              curr_contact.city_desc
-              IF SQLCA.SQLCODE==NOTFOUND THEN
+              IF sqlca.sqlcode==NOTFOUND THEN
                  ERROR %"contacts.error.invcity"
                  NEXT FIELD CURRENT
               END IF
@@ -778,11 +778,11 @@ PRIVATE FUNCTION edit_contact(row, new)
                      WHERE contact_num = curr_contact.contact_num
                  END IF
                  WHENEVER ERROR STOP
-                 IF SQLCA.SQLCODE==0 THEN
+                 IF sqlca.sqlcode==0 THEN
                     LET curr_contact.status_label = dbsync_mstat_desc(curr_contact.contact_rec_mstat)
                     CALL contrec_to_controw(row, new)
                  ELSE
-                    ERROR SQLCA.SQLCODE||":"||SQLERRMESSAGE
+                    ERROR sqlca.sqlcode||":"||SQLERRMESSAGE
                     NEXT FIELD CURRENT
                  END IF
               END IF
@@ -1041,9 +1041,9 @@ PRIVATE FUNCTION build_map_url(type,cnum,zoom)
            x, i INTEGER
 
     WHENEVER ERROR CONTINUE
-    CALL ui.Interface.frontcall("standard", "feinfo", ["screenresolution"], [size])
+    CALL ui.Interface.frontCall("standard", "feinfo", ["screenresolution"], [size])
     WHENEVER ERROR STOP
-    IF LENGTH(size)=0 THEN
+    IF length(size)=0 THEN
        LET size = "400x400"
     END IF
 
@@ -1175,7 +1175,7 @@ PRIVATE FUNCTION load_contacts()
 
            LET contlistattr[row].short_desc = dbsync_mstat_color(contlist[row].contact_rec_mstat)
 
-           IF LENGTH(tmp_byte) == 0 THEN
+           IF length(tmp_byte) == 0 THEN
               LET contlist[row].contact_photo_file = ANONYMOUS_IMAGE_FILE
            ELSE
               LET contlist[row].contact_photo_file = byte_image_file_name(

@@ -40,7 +40,7 @@ PRIVATE DEFINE bfn_list DYNAMIC ARRAY OF RECORD
 
 -- Check UTF-8 and char length semantics: Works only on server.
 FUNCTION check_utf8()
-    IF ORD("€") == 8364 AND LENGTH("€") == 1 THEN
+    IF ORD("€") == 8364 AND length("€") == 1 THEN
        RETURN 0, NULL
     ELSE
        RETURN -1, "Application locale must be UTF-8, with char length semantics"
@@ -68,11 +68,11 @@ FUNCTION do_connect(dbname,dbsrce,dbdriv,uname,upswd)
     DEFINE dbname,dbsrce,dbdriv,uname,upswd STRING
     DEFINE tmp, dbspec STRING
     LET dbspec = dbname
-    IF LENGTH(dbdriv)>0 THEN
+    IF length(dbdriv)>0 THEN
        LET tmp = tmp,IIF(tmp IS NULL,"+",",")
        LET tmp = tmp,SFMT("driver='%1'",dbdriv)
     END IF
-    IF LENGTH(dbsrce)>0 THEN
+    IF length(dbsrce)>0 THEN
        LET tmp = tmp,IIF(tmp IS NULL,"+",",")
        LET tmp = tmp,SFMT("source='%1'",dbsrce)
     END IF
@@ -80,13 +80,13 @@ FUNCTION do_connect(dbname,dbsrce,dbdriv,uname,upswd)
        LET dbspec = dbname || tmp
     END IF
     WHENEVER ERROR CONTINUE
-    IF LENGTH(uname) == 0 THEN
+    IF length(uname) == 0 THEN
        CONNECT TO dbspec
     ELSE
        CONNECT TO dbspec USER uname USING upswd
     END IF
     WHENEVER ERROR STOP
-    RETURN SQLCA.SQLCODE
+    RETURN sqlca.sqlcode
 END FUNCTION
 
 -- Users
@@ -110,7 +110,7 @@ FUNCTION users_disp_load(arr)
     FOREACH c_users INTO rec.*
         LET i=i+1
         LET arr[i].user_id = rec.user_id
-        LET arr[i].user_has_pswd = (LENGTH(rec.user_auth)>0)
+        LET arr[i].user_has_pswd = (length(rec.user_auth)>0)
         LET arr[i].user_name = rec.user_name
         LET arr[i].user_status = rec.user_status
     END FOREACH
@@ -139,7 +139,7 @@ END FUNCTION
 
 PUBLIC FUNCTION pswd_match(p1,p2)
     DEFINE p1 STRING, p2 STRING
-    IF LENGTH(p1)==0 AND LENGTH(p2)==0 THEN -- No password at all
+    IF length(p1)==0 AND length(p2)==0 THEN -- No password at all
        RETURN TRUE
     END IF
     -- Values must match, if one is NULL=>FALSE,
@@ -200,7 +200,7 @@ FUNCTION users_check(usrid,uauth)
       FROM users
       WHERE user_id = usrid
     CASE
-        WHEN SQLCA.SQLCODE == NOTFOUND
+        WHEN sqlca.sqlcode == NOTFOUND
           RETURN "user_invalid"
         WHEN NOT pswd_match(uauth, curr_auth)
           RETURN "user_invpswd"
@@ -215,7 +215,7 @@ PUBLIC FUNCTION user_auth_encrypt(uauth)
     DEFINE uauth STRING -- Clear
     DEFINE result STRING,
            dgst security.Digest
-    IF LENGTH(uauth)==0 THEN
+    IF length(uauth)==0 THEN
        RETURN NULL
     END IF
     TRY
@@ -223,7 +223,7 @@ PUBLIC FUNCTION user_auth_encrypt(uauth)
         CALL dgst.AddStringData(uauth)
         LET result = dgst.DoBase64Digest()
     CATCH
-        DISPLAY "ERROR : ", STATUS, " - ", SQLCA.SQLERRM
+        DISPLAY "ERROR : ", status, " - ", sqlca.sqlerrm
         EXIT PROGRAM(-1)
     END TRY
     RETURN result
@@ -235,7 +235,7 @@ FUNCTION users_change_auth(usrid,old,new)
            new t_user_auth  -- Encrypted
     DEFINE tmp t_user_auth  -- Encrupted
     SELECT user_auth INTO tmp FROM users WHERE user_id=usrid
-    IF SQLCA.SQLCODE==NOTFOUND THEN
+    IF sqlca.sqlcode==NOTFOUND THEN
        RETURN "user_invalid"
     END IF
     IF NOT pswd_match(tmp, old) THEN
@@ -257,7 +257,7 @@ FUNCTION sequence_create(tabname,startnum)
   WHENEVER ERROR CONTINUE
   EXECUTE IMMEDIATE "CREATE SEQUENCE "||tabname||"_seq START "||startnum
   WHENEVER ERROR STOP
-  RETURN SQLCA.SQLCODE
+  RETURN sqlca.sqlcode
 END FUNCTION
 
 FUNCTION sequence_drop(tabname)
@@ -265,7 +265,7 @@ FUNCTION sequence_drop(tabname)
   WHENEVER ERROR CONTINUE
   EXECUTE IMMEDIATE "DROP SEQUENCE "||tabname||"_seq"
   WHENEVER ERROR STOP
-  RETURN SQLCA.SQLCODE
+  RETURN sqlca.sqlcode
 END FUNCTION
 
 FUNCTION sequence_next(tabname)
@@ -282,9 +282,9 @@ FUNCTION sequence_next(tabname)
   END CASE
   WHENEVER ERROR CONTINUE
   PREPARE seq_next FROM sqlstmt
-  IF SQLCA.SQLCODE!=0 THEN RETURN -1 END IF
+  IF sqlca.sqlcode!=0 THEN RETURN -1 END IF
   EXECUTE seq_next INTO newseq
-  IF SQLCA.SQLCODE!=0 THEN RETURN -1 END IF
+  IF sqlca.sqlcode!=0 THEN RETURN -1 END IF
   WHENEVER ERROR STOP
   RETURN newseq
 END FUNCTION
@@ -306,7 +306,7 @@ FUNCTION sequence_mobile_new(tabname,colname)
        PREPARE seq_mob_new FROM "SELECT MIN("||colname||")-1 FROM "||tabname
                ||" WHERE "||colname||" < 0"
        EXECUTE seq_mob_new INTO newseq
-       IF newseq IS NULL OR SQLCA.SQLCODE == NOTFOUND THEN
+       IF newseq IS NULL OR sqlca.sqlcode == NOTFOUND THEN
           LET newseq = -1
        END IF
     CATCH
@@ -397,7 +397,7 @@ FUNCTION datafilter_get_last_mtime(uid, tn, first_sync)
        SELECT last_mtime INTO last_user_mtime
          FROM datafilter
         WHERE user_id = uid AND table_name = tn
-       IF SQLCA.SQLCODE==NOTFOUND THEN
+       IF sqlca.sqlcode==NOTFOUND THEN
           LET last_user_mtime = base_datetime
        END IF
     END IF
@@ -410,7 +410,7 @@ FUNCTION datafilter_get_filter(uid, tn)
     SELECT where_part INTO wp
       FROM datafilter
      WHERE user_id = uid AND table_name = tn
-    IF SQLCA.SQLCODE==NOTFOUND OR LENGTH(wp)=0 THEN
+    IF sqlca.sqlcode==NOTFOUND OR length(wp)=0 THEN
        LET wp = NULL
     END IF
     RETURN wp
@@ -423,7 +423,7 @@ FUNCTION datafilter_register_mtime(uid, tn, mtime)
     UPDATE datafilter
        SET temp_mtime = mtime
      WHERE user_id = uid AND table_name = tn
-    RETURN IIF(SQLCA.SQLERRD[3]==1,0,-1)
+    RETURN IIF(sqlca.sqlerrd[3]==1,0,-1)
 END FUNCTION
 
 FUNCTION datafilter_commit_mtime(uid, tn)
@@ -434,14 +434,14 @@ FUNCTION datafilter_commit_mtime(uid, tn)
       FROM datafilter
      WHERE user_id = uid AND table_name = tn
        AND temp_mtime IS NOT NULL
-    IF SQLCA.SQLCODE==NOTFOUND THEN
+    IF sqlca.sqlcode==NOTFOUND THEN
        RETURN -2
     END IF
     UPDATE datafilter
        SET last_mtime = mtime,
            temp_mtime = NULL
      WHERE user_id = uid AND table_name = tn
-    RETURN IIF(SQLCA.SQLERRD[3]==1,0,-1)
+    RETURN IIF(sqlca.sqlerrd[3]==1,0,-1)
 END FUNCTION
 
 
