@@ -224,21 +224,23 @@ Then start the dbsync_contact_server program with the -k <google-api-key> option
     * LC_ALL=en_US.UTF-8
     * FGL_LENGTH_SEMANTICS=CHAR
     * LD_LIBRARY_PATH to DB client used
+    * Locale settings for DB client
     * FGLLDPATH to find modules in ./common
     * Put the correct path to the dbsync server program (<PATH>)
     * Define the parameters for the dbsync server program (<PARAMETERS>)
 3. Copy the .xcf file to $FGLASDIR/appdata/services
 4. Start the GAS (httpdispatch)
 5. Check the GAS config with a browser:
- ```
- http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
- ```
- If the browser does no show a welcome page, check the GAS logs.
-6. Check with the application on the mobile device, by entering the URL:
- ```
- http://<server_host>:<port>/ws/r/dbsync_contact_server
- ```
+   ```
+   http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
+   ```
+   Typical default TCP port used by the GAS is 8090.
+   If the browser does no show a welcome page, check the GAS logs.
 
+6. Check with the application on the mobile device, by entering the URL:
+   ```
+   http://<server_host>:<port>/ws/r/dbsync_contact_server
+   ```
 
 ### Compile the mobile application
 
