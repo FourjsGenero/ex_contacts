@@ -24,7 +24,7 @@ MAIN
        EXIT PROGRAM 1
     END IF
 
-    LET port = 8090 -- For dev
+    LET port = NVL(fgl_getenv("FGLAPPSERVER"),8090)
     CALL libutil.get_dbc_args()
          RETURNING dbname, dbsrce, dbdriv, uname, upswd
     FOR i = 1 TO num_args()
@@ -84,7 +84,7 @@ FUNCTION start_http(port)
            uri STRING
 
     -- Normally, the port is set by the GAS for load balancing
-    IF port IS NOT NULL THEN
+    IF port IS NOT NULL AND fgl_getenv("FGLAPPSERVER") IS NULL THEN
        CALL show_verb( SFMT("Setting FGLAPPSERVER to %1", port) )
        CALL fgl_setenv("FGLAPPSERVER", port)
     END IF
