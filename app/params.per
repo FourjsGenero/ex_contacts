@@ -11,6 +11,7 @@ GRID
 [l_cnt         |cnt           ]
 [l_grp         |grp           ]
 [url                          ]
+[                             ]
 [btest                        ]
 [l_snc         |snc           ]
 [fgeo                         ]
@@ -69,7 +70,7 @@ CHECKBOX fgeo = FORMONLY.sync_geoloc, TEXT=%"params.label.sync_geoloc",
            NOT NULL, REQUIRED;
 
 
-LABEL url = FORMONLY.cdb_url, COLOR=GREEN;
+TEXTEDIT url = FORMONLY.cdb_url, COLOR=GREEN, NOENTRY;
 
 BUTTON btest: test_connection, TEXT=%"params.button.test";
 

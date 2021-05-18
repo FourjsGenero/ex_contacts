@@ -131,6 +131,7 @@
 "contacts.contlist_options_menu.settings"    = "Settings"
 "contacts.contlist_options_menu.syncfirst"   = "Full sync"
 "contacts.contlist_options_menu.synclog"     = "Sync Log"
+"contacts.contlist_options_menu.stress"      = "Stress test"
 "contacts.contlist_options_menu.cancel"    = "Cancel"
 
 "contacts.mstatdesc.synchro" = "Synchronized"

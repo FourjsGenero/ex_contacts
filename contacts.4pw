@@ -98,6 +98,7 @@
         <File filePath="app/contmap.per"/>
         <File filePath="app/contnote.per"/>
         <File filePath="app/list1.per"/>
+        <File filePath="app/options1.per"/>
         <File filePath="app/params.per"/>
         <File filePath="app/password.per"/>
       </VirtualFolder>

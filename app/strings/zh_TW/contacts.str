@@ -132,6 +132,7 @@
 "contacts.contlist_options_menu.settings" = "設置"
 "contacts.contlist_options_menu.syncfirst" = "同步為先"
 "contacts.contlist_options_menu.synclog" = "同步日誌"
+"contacts.contlist_options_menu.stress" = "Stress test"
 "contacts.contlist_options_menu.cancel" = "取消"
 
 "contacts.mstatdesc.synchro" = "同步"

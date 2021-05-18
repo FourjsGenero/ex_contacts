@@ -14,7 +14,8 @@ FORMS=\
   contnote.42f\
   contlist.42f\
   contmap.42f\
-  list1.42f
+  list1.42f\
+  options1.42f
 
 RESOURCES=\
   contacts.4ad
