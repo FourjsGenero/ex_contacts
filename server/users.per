@@ -1,22 +1,49 @@
-LAYOUT
+ACTION DEFAULTS
+ACTION update ( IMAGE="fa-square-o", TEXT="Modify" )
+ACTION append ( IMAGE="fa-plus-square-o", TEXT="New user" )
+ACTION delete ( IMAGE="fa-minus-square-o", TEXT="Delete" )
+ACTION accept ( IMAGE="fa-check", TEXT="Accept" )
+ACTION cancel ( IMAGE="fa-close", TEXT="Cancel" )
+ACTION rsttim ( IMAGE="fa-rotate-left", TEXT="Reset ts" )
+ACTION clpswd ( IMAGE="fa-lock", TEXT="Clear pswd" )
+ACTION reload ( IMAGE="fa-refresh", TEXT="Refresh" )
+ACTION close  ( IMAGE="fa-power-off", TEXT="Quit" )
+END
+
+TOOLBAR
+ITEM update
+ITEM append
+ITEM delete
+SEPARATOR
+ITEM accept
+ITEM cancel
+SEPARATOR
+ITEM rsttim
+ITEM clpswd
+ITEM reload
+SEPARATOR
+ITEM close
+END
+
+LAYOUT (STYLE="main2")
 GRID
 {
-<t t1                                                ><g g1   >
-[c1   |c2  |c3                                |c4   ] [b_upd]
-[c1   |c2  |c3                                |c4   ] [b_app]
-[c1   |c2  |c3                                |c4   ] [b_del]
-[c1   |c2  |c3                                |c4   ] [b_rst]
-[c1   |c2  |c3                                |c4   ] [b_cpw]
-[c1   |c2  |c3                                |c4   ] [b_rld]
-<                                                    ><       >
-<t t2                    >[wp                                 ]
-[c21      |c22    |c23   ][                                   ]
-[c21      |c22    |c23   ][                                   ]
-[c21      |c22    |c23   ][                                   ]
-[c21      |c22    |c23   ][                                   ]
-[c21      |c22    |c23   ][                                   ]
-[c21      |c22    |c23   ][                                   ]
-<                        >[                           :b_sav  ]
+<t t1                                              >
+[c1   |c2  |c3                                |c4   ]
+[c1   |c2  |c3                                |c4   ]
+[c1   |c2  |c3                                |c4   ]
+[c1   |c2  |c3                                |c4   ]
+[c1   |c2  |c3                                |c4   ]
+[c1   |c2  |c3                                |c4   ]
+<                                                  >
+<t t2                    >[wp                       ]
+[c21      |c22    |c23   ][                         ]
+[c21      |c22    |c23   ][                         ]
+[c21      |c22    |c23   ][                         ]
+[c21      |c22    |c23   ][                         ]
+[c21      |c22    |c23   ][                         ]
+[c21      |c22    |c23   ][                         ]
+<                        >[                 :b_sav  ]
 }
 END
 END
@@ -28,13 +55,6 @@ EDIT c3 = FORMONLY.user_name, TITLE="Name",
   SCROLL, NOT NULL;
 COMBOBOX c4 = FORMONLY.user_status, TITLE="Status",
   NOT NULL, ITEMS = ((1,"Active"), (-1,"Denied"));
-GROUP g1: group1;
-BUTTON b_upd: update, IMAGE="listins", TEXT="Modify";
-BUTTON b_app: append, IMAGE="listadd", TEXT="New user";
-BUTTON b_del: delete, IMAGE="listdel", TEXT="Delete";
-BUTTON b_rst: rsttim, IMAGE="reset", TEXT="Reset ts";
-BUTTON b_cpw: clpswd, IMAGE="fa-lock", TEXT="Clear pswd";
-BUTTON b_rld: reload, IMAGE="fa-refresh", TEXT="Refresh";
 PHANTOM FORMONLY.f_user_id;
 EDIT c21 = FORMONLY.table_name, TITLE="Table name",
   SCROLL, NOT NULL;
