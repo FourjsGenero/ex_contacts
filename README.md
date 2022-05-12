@@ -13,8 +13,8 @@ with other mobile apps through the central database program.
 Allow user/contact location with Google geolocation services to show
 a map with contacts nearby, based on the contact address.
 
-Note that the contact database of this demo is isolated: it does not
-use the contact database of the mobile device.
+Note that the contact database of this demo is isolated. The demo does
+not interface with the integrated contacts list of the mobile device.
 
 ![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-002.png)
 
@@ -87,29 +87,29 @@ $ createdb contacts --template=template0 --encoding=utf8 --locale=en_US.utf8
 
 ### Server-side programs
 
-1. Open a first Studio instance
+1. Open a first Genero Studio instance
 2. Make sure you have a valid GDC Desktop configuration in UTF-8 and FGL_LENGTH_SEMANTICS=CHAR length semantics.
 3. Select the GDC Desktop configuration with UTF-8 and CHAR length semantics
 4. Load the *server_progs.4pw* project file.
 5. Build the server programs.
 6. Create server db tables: *Skip this when using the default SQLite DB server side*
   * Go to the *mkcontacts_main* application node.
-  * Edit the command line arguments in order to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
-  * Eventually, add the -s command line option, to create sample data.
+  * Edit the command line arguments to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
+  * If needed, add the -s command line option, to create sample data.
   * Run the *mkcontacts_main* program to create the database tables.
 7. Configure the server database:
   * Go to the *server_config* application node.
-  * Edit the command line arguments in order to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
+  * Edit the command line arguments to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
   * Run the program.
 8. Execute the server program managing database synchronization:
   * Go to the *dbsync_contact_server* application node.
-  * Edit the command line arguments in order to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
+  * Edit the command line arguments to use your database (-d *dbname* -o *odidriver* -u *user* -w *pswd*).
   * Check the command line arguments for the TCP port (-p port).
   * Run the program.
 
 ### Contacts app for mobile
 
-1. Open a second Studio instance
+1. Open a second Genero Studio instance
 2. Select the Mobile Desktop configuration for Android or iOS.
 3. Make sure that the configuration uses UTF-8 locale and FGL_LENGTH_SEMANTICS=CHAR.
 4. Build the app.
@@ -373,7 +373,7 @@ After compiling server programs and deploying the mobile app:
 * Configure the users with the *server_config* program.
   * Add users if needed.
   * Define data filters.
-* Make sure your mobile devices is on the same Wifi as the server.
+* Make sure your mobile device is on the same Wifi as the server.
 * Start the app on the mobile device.
 * At first start, the app will ask for config settings.
   * Define the server Host IP address (10.0.2.2 in Android emulator)
