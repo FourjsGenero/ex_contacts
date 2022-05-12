@@ -220,6 +220,10 @@ PRIVATE FUNCTION contact_list()
               ERROR %"contacts.error.cantdel1"
               LET int_flag = TRUE
            END IF
+        ON ACTION sync
+           IF synchronize(FALSE,TRUE) THEN
+              CALL DIALOG.setCurrentRow("sr",1)
+           END IF
         ON ACTION options
            CALL contlist_options(DIALOG)
         ON ACTION close
@@ -406,7 +410,7 @@ PRIVATE FUNCTION call_contact(row)
     LET cmt_h = "("||contlist[row].contact_num_h||")"
     LET cmt_w = "("||contlist[row].contact_num_w||")"
     MENU %"contacts.contlist_options_menu.call"
-      ATTRIBUTES(STYLE="dialog")
+      ATTRIBUTES(STYLE="popup")
         COMMAND %"contacts.contlist_options_menu.call.mobile" cmt_m
            LET num = contlist[row].contact_num_m
         COMMAND %"contacts.contlist_options_menu.call.home" cmt_h
@@ -808,7 +812,7 @@ END FUNCTION
 PRIVATE FUNCTION contform_photo_options(d)
     DEFINE d ui.Dialog
     MENU %"contacts.contform_options_menu.title"
-            ATTRIBUTES(STYLE="dialog")
+            ATTRIBUTES(STYLE="popup")
         COMMAND %"contacts.contform_options_menu.take_photo"
            CALL get_photo("takePhoto", d)
         COMMAND %"contacts.contform_options_menu.choose_photo"
@@ -824,7 +828,7 @@ END FUNCTION
 PRIVATE FUNCTION contform_options(d, row)
     DEFINE d ui.Dialog, row INTEGER
     MENU %"contacts.contform_options_menu.title"
-            ATTRIBUTES(STYLE="dialog")
+            ATTRIBUTES(STYLE="popup")
         BEFORE MENU
            IF NOT dbsync_marked_for_deletion(curr_contact.contact_rec_mstat) THEN
               HIDE OPTION %"contacts.contform_options_menu.undelete"
