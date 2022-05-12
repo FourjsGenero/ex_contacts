@@ -14,7 +14,7 @@ gmabuildtool build \
     --build-output-apk-name contacts \
     --build-apk-outputs $gma_app_output_dir \
     --build-app-genero-program $TOP/build/appdir \
-    --build-app-permissions android.permission.INTERNET,android.permission.ACCESS_NETWORK_STATE,android.permission.CHANGE_NETWORK_STATE,android.permission.ACCESS_WIFI_STATE,android.permission.ACCESS_COARSE_LOCATION,android.permission.ACCESS_FINE_LOCATION,android.permission.READ_EXTERNAL_STORAGE,android.permission.WRITE_EXTERNAL_STORAGE \
+    --build-app-permissions android.permission.CAMERA,android.permission.INTERNET,android.permission.ACCESS_NETWORK_STATE,android.permission.CHANGE_NETWORK_STATE,android.permission.ACCESS_WIFI_STATE,android.permission.ACCESS_COARSE_LOCATION,android.permission.ACCESS_FINE_LOCATION,android.permission.READ_EXTERNAL_STORAGE,android.permission.WRITE_EXTERNAL_STORAGE \
     --build-app-name Contacts \
     --build-app-package-name com.fourjs.contacts \
     --build-app-version-code 3010 \
