@@ -162,7 +162,6 @@ FUNCTION edit_user(new)
            END IF
     END INPUT
     IF int_flag THEN
-       LET int_flag = FALSE
        RETURN FALSE
     END IF
     TRY
