@@ -20,10 +20,10 @@ not interface with the integrated contacts list of the mobile device.
 
 ### Prerequisites
 
-* Genero BDL 3.20+
-* Database server: Tested with Informix 11.20 and PostgreSQL 9.3.
-* Genero Mobile (GMI/GMA) >= 1.40
-* GNU make utility or Genero Studio 3.20+
+* Genero BDL 4.01+
+* Database server: Tested with Informix 14.10 and PostgreSQL 13.
+* Genero Mobile (GMI/GMA) >= 4.01
+* GNU make utility or Genero Studio 4.01+
 
 ### Components
 

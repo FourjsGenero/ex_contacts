@@ -255,35 +255,34 @@ END FUNCTION
 PRIVATE FUNCTION contlist_options(d)
     DEFINE d ui.Dialog
     DEFINE sync SMALLINT
-    OPEN WINDOW w_options_1 WITH FORM "options1"
-    MENU "options1"
-        ON ACTION geoloc
+    MENU "options1" ATTRIBUTES(STYLE="popup")
+        ON ACTION geoloc ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.geoloc" )
            CALL update_geoloc_for_user(TRUE)
            CALL show_map()
-        ON ACTION call
+        ON ACTION call ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.call" )
            CALL call_contact(d.getCurrentRow("sr"))
-        ON ACTION sync
+        ON ACTION sync ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.sync" )
            LET sync = 1
            EXIT MENU
-        ON ACTION settings
+        ON ACTION settings ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.settings" )
            IF edit_settings(FALSE) THEN
               CALL set_title()
               CALL save_settings()
            END IF
-        ON ACTION quit
+        ON ACTION quit ATTRIBUTES( TEXT=%"common.action.quit" )
            CALL terminate_application()
-        ON ACTION togglepha
+        ON ACTION togglepha ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.togglepha" )
            LET parameters.see_all = NOT parameters.see_all
            CALL load_contacts()
            CALL d.setCurrentRow("sr",1)
-        ON ACTION cleargarb
+        ON ACTION cleargarb ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.cleargarb" )
            CALL clear_garbage(d)
-        ON ACTION syncfirst
+        ON ACTION syncfirst ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.syncfirst" )
            LET sync = 2
            EXIT MENU
-        ON ACTION synclog
+        ON ACTION synclog ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.synclog" )
            CALL dbsynclog_show()
-        ON ACTION stress
+        ON ACTION stress ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.stress" )
            MENU "Stress test" ATTRIBUTES(STYLE="dialog")
                COMMAND "More"  CALL stress_test(d)
                COMMAND "Clean" CALL stress_clean()
@@ -291,7 +290,6 @@ PRIVATE FUNCTION contlist_options(d)
         ON ACTION cancel ATTRIBUTES(TEXT=%"contacts.contlist_options_menu.cancel")
            EXIT MENU
     END MENU
-    CLOSE WINDOW w_options_1
     IF sync>0 THEN
        IF synchronize((sync==2),TRUE) THEN
           CALL d.setCurrentRow("sr",1)
@@ -562,7 +560,7 @@ PRIVATE FUNCTION zoom_city()
           LET row = arr.getLength()
        END IF
     END FOREACH
-    OPEN WINDOW w_zoom_city WITH FORM "list1" ATTRIBUTES(STYLE="dialog",TEXT=%"citylist.title")
+    OPEN WINDOW w_zoom_city WITH FORM "list1" ATTRIBUTES(TEXT=%"citylist.title")
     LET int_flag=FALSE
     DISPLAY ARRAY arr TO sr.* ATTRIBUTES(DOUBLECLICK=accept)
         BEFORE DISPLAY
@@ -1240,8 +1238,33 @@ PRIVATE FUNCTION add_presentation_styles()
     LET rn = ui.Interface.getRootNode()
     LET sl = get_aui_node(rn, "StyleList", NULL)
     --
+{
     LET nn = add_style(sl, "Table.listview")
     IF nn IS NOT NULL THEN
        CALL set_style_attribute(nn, "tableType", "listView" )
     END IF
+}
+
+    LET nn = add_style(sl, "ScrollGrid.listview")
+    IF nn IS NOT NULL THEN
+       CALL set_style_attribute(nn, "highlightCurrentRow", "no")
+       CALL set_style_attribute(nn, "rowActionTrigger", "singleClick")
+    END IF
+
+    LET nn = add_style(sl, ".field1")
+    IF nn IS NOT NULL THEN
+       CALL set_style_attribute(nn, "fontSize", "1.2em")
+       CALL set_style_attribute(nn, "fontWeight", "bold")
+    END IF
+
+    LET nn = add_style(sl, ".field2")
+    IF nn IS NOT NULL THEN
+       CALL set_style_attribute(nn, "fontSize", "0.8em")
+    END IF
+
+    LET nn = add_style(sl, "Image.noborder")
+    IF nn IS NOT NULL THEN
+       CALL set_style_attribute(nn, "border", "none")
+    END IF
+
 END FUNCTION
