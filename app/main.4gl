@@ -1235,15 +1235,16 @@ PRIVATE FUNCTION add_presentation_styles()
     DEFINE rn om.DomNode,
            sl om.DomNode,
            nn om.DomNode
+
     LET rn = ui.Interface.getRootNode()
     LET sl = get_aui_node(rn, "StyleList", NULL)
-    --
-{
+
     LET nn = add_style(sl, "Table.listview")
     IF nn IS NOT NULL THEN
-       CALL set_style_attribute(nn, "tableType", "listView" )
+       -- CALL set_style_attribute(nn, "tableType", "listView" )
+       CALL set_style_attribute(nn, "headerHidden", "yes")
+       CALL set_style_attribute(nn, "rowActionTrigger", "singleClick")
     END IF
-}
 
     LET nn = add_style(sl, "ScrollGrid.listview")
     IF nn IS NOT NULL THEN
