@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Schema gstVersion="31405" id="{2aeacba3-79b8-4435-a5e7-638c5b4eb222}" version="4.0">
+<Schema gstVersion="40100" id="{2aeacba3-79b8-4435-a5e7-638c5b4eb222}" version="4.0">
   <AGSettings version="1.1">
-    <DynamicProperties version="2">
+    <DynamicProperties version="4">
       <DynamicProperty description="Associated label when generating form" initialValue="" isDefaultInherited="false" isHidden="false" label="Label" name="label" readOnly="false" type="TEXT"/>
       <DynamicProperty description="Associated widget" editorInfo="contains:ButtonEdit|CheckBox|ComboBox|DateEdit|DateTimeEdit|Edit|FFImage|FFLabel|Field|Phantom|ProgressBar|RadioGroup|Slider|SpinEdit|TextEdit|TimeEdit" initialValue="Edit" isDefaultInherited="false" isHidden="false" label="Widget" name="widget" readOnly="false" type="ENUM"/>
       <DynamicPropertyGroup collapsed="false" description="Formfied properties" label="Formfield" name="formfieldGroup" properties="label;widget"/>
@@ -76,7 +76,7 @@
   <Views ActiveView="View-1" showLabels="true">
     <View Name="View-1">
       <Layout>
-        <![CDATA[AAAAAgAAABIAZABiAC8AdABhAGIAbABlADbAT7//////+kCBZZNk2TZOP9i0OVgQYlMBAAAAFABkAGIALwB0AGEAYgBsAGUAMQAwQIXwqqqqqq1AfHjZNk2TZz/Yk3S8an7/AQAAABQAZABiAC8AdABhAGIAbABlADEAMkCA5Loui6LsQCbB8HwfByo/1gQYk3S8bwEAAAASAGQAYgAvAHQAYQBiAGwAZQA0wFaC6Loui6RAafPg+D4Piz/YAAAAAAAFAQAAABIAZABiAC8AdABhAGIAbABlADJAe4Yui6Lou0CB5A+D4PhAP9bpeNT987sBAAAAFABkAGIALwB0AGEAYgBsAGUAMQA0wBToui6LovBARHF0XRdFxz/YYk3S8aoBAQAAABIAZABiAC8AdABhAGIAbABlADhAhIdVVVVVVkBw+F0XRdF2P9eNT987ZF8B]]>
+        <![CDATA[AAAAAgAAABQAZABiAC8AdABhAGIAbABlADEAMECF8KqqqqqtQHx42TZNk2c/2JN0vGp+/wEAAAASAGQAYgAvAHQAYQBiAGwAZQAyQHuGLoui6LtAgeQPg+D4QD/W6XjU/fO7AQAAABIAZABiAC8AdABhAGIAbABlADTAVoLoui6LpEBp8+D4Pg+LP9gAAAAAAAUBAAAAEgBkAGIALwB0AGEAYgBsAGUAOECEh1VVVVVWQHD4XRdF0XY/141P3ztkXwEAAAAUAGQAYgAvAHQAYQBiAGwAZQAxADTAFOi6Loui8EBEcXRdF0XHP9hiTdLxqgEBAAAAFABkAGIALwB0AGEAYgBsAGUAMQAyQIDkui6LouxAJsHwfB8HKj/WBBiTdLxvAQAAABIAZABiAC8AdABhAGIAbABlADbAT7//////+kCBZZNk2TZOP9i0OVgQYlMB]]>
       </Layout>
     </View>
   </Views>
