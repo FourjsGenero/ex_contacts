@@ -234,7 +234,7 @@ Then start the dbsync_contact_server program with the -k <google-api-key> option
    ```
    http://localhost:<port>/ws/r/dbsync_contact_server/mobile/dbsync/status
    ```
-   Typical default TCP port used by the GAS is 8090.
+   Typical default TCP port used by the GAS is 6394.
    If the browser does no show a welcome page, check the GAS logs.
 
 6. Check with the application on the mobile device, by entering the URL:
@@ -377,7 +377,7 @@ After compiling server programs and deploying the mobile app:
 * Start the app on the mobile device.
 * At first start, the app will ask for config settings.
   * Define the server Host IP address (10.0.2.2 in Android emulator)
-  * Define the port, if you have changed it on the server side (default is 8090)
+  * Define the port, if you have changed it on the server side (default is 6394)
   * Define the user id (ted, mike or max are predefined users in sample db)
   * Configure the GAS settings if the server program is behind GAS.
   * Tap the "Test" button to see if the connection can be established.

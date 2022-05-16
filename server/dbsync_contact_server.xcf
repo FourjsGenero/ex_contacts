@@ -11,10 +11,11 @@
     <!-- Database client libraries (LD_LIBRARY_PATH) inherited from GAS env -->
     <!--ENVIRONMENT_VARIABLE Id="LD_LIBRARY_PATH">...</ENVIRONMENT_VARIABLE -->
 
+    <FGLLDPATH><!-- here goes path to top dir-->/common</FGLLDPATH>
     <PATH><!-- here goes path to top dir-->/server</PATH>
     <MODULE>dbsync_contact_server.42m</MODULE>
 
-    <!-- Command line parameters for the dbsync program (PostgreSQL) -->
+    <!-- Command line parameters for the dbsync program -->
     <PARAMETERS>
       <PARAMETER>-d</PARAMETER>
       <PARAMETER>contacts</PARAMETER>

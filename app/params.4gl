@@ -125,10 +125,10 @@ FUNCTION edit_settings(init)
            CALL change_password()
         ON ACTION test_connection
            LET tested = (test_connection()==0)
-        ON ACTION gas_settings
-           LET parameters.cdb_host = "192.168.1.34"
-           LET parameters.cdb_port = 6394 -- When using GAS
-           LET parameters.cdb_gas = "Y"
+        #ON ACTION gas_settings
+        #   LET parameters.cdb_host = "192.168.1.34"
+        #   LET parameters.cdb_port = 6394 -- When using GAS
+        #   LET parameters.cdb_gas = "Y"
         AFTER INPUT
            IF NOT int_flag THEN
               IF NOT tested THEN
@@ -169,7 +169,7 @@ PUBLIC FUNCTION load_settings()
        LET parameters.cdb_format = "json"
        LET parameters.cdb_protocol = "http"
        LET parameters.cdb_host = "10.0.2.2" -- (for Android Emulator)
-       LET parameters.cdb_port = 8090 -- In GWS dev mode
+       LET parameters.cdb_port = 6394
        LET parameters.cdb_gas = "N"
        LET parameters.cdb_connector = NULL
        LET parameters.cdb_group = NULL
