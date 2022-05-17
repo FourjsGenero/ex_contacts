@@ -9,18 +9,18 @@ PUBLIC TYPE t_table_name VARCHAR(50)
 PUBLIC TYPE t_where_part VARCHAR(250)
 
 PUBLIC TYPE t_user_disp RECORD
-           user_id VARCHAR(50),
+           user_id t_user_id,
            user_has_pswd BOOLEAN,
-           user_name VARCHAR(100),
+           user_name t_user_name,
            user_status INTEGER
        END RECORD
 
 PUBLIC TYPE t_datafilter RECORD
-           f_user_id VARCHAR(50),
-           table_name VARCHAR(100),
+           f_user_id t_user_id,
+           table_name t_table_name,
            last_mtime DATETIME YEAR TO FRACTION(3),
            temp_mtime DATETIME YEAR TO FRACTION(3),
-           where_part VARCHAR(250)
+           where_part t_where_part
        END RECORD
 
 PUBLIC CONSTANT v_undef VARCHAR(10) = "<undef>"
@@ -95,9 +95,9 @@ FUNCTION users_disp_load(arr)
     DEFINE arr DYNAMIC ARRAY OF t_user_disp
     DEFINE i INTEGER,
            rec RECORD
-               user_id VARCHAR(50),
+               user_id t_user_id,
                user_auth BOOLEAN,
-               user_name VARCHAR(100),
+               user_name t_user_name,
                user_status INTEGER
            END RECORD
     CALL arr.clear()
@@ -406,7 +406,7 @@ END FUNCTION
 
 FUNCTION datafilter_get_filter(uid, tn)
     DEFINE uid t_user_id, tn t_table_name
-    DEFINE wp VARCHAR(250)
+    DEFINE wp t_where_part
     SELECT where_part INTO wp
       FROM datafilter
      WHERE user_id = uid AND table_name = tn
