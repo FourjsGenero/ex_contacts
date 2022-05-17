@@ -335,7 +335,7 @@ FUNCTION datafilter_table()
 END FUNCTION
 
 FUNCTION datafilter_load(uid, arr)
-    DEFINE uid VARCHAR(50),
+    DEFINE uid t_user_id,
            arr DYNAMIC ARRAY OF t_datafilter
     DEFINE i INTEGER
     CALL arr.clear()
