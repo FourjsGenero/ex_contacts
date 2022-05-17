@@ -23,10 +23,10 @@ FUNCTION create_database(tp,ws)
 
        CALL libutil.users_server_table()
        IF ws THEN
-          CALL libutil.users_add(v_undef, NULL, v_undef_text) -- Foreign key to contacts
-          CALL libutil.users_add("max",   NULL, "Max Brand")
-          CALL libutil.users_add("mike",  NULL, "Mike Sharp")
-          CALL libutil.users_add("ted",   NULL, "Ted Philips")
+          CALL libutil.users_add(v_undef, NULL, v_undef_text, 1) -- Foreign key to contacts
+          CALL libutil.users_add("max",   NULL, "Max Brand", 1)
+          CALL libutil.users_add("mike",  NULL, "Mike Sharp", 1)
+          CALL libutil.users_add("ted",   NULL, "Ted Philips", 1)
        END IF
 
        CALL libutil.datafilter_table()

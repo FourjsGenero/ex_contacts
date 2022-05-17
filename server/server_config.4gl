@@ -153,9 +153,7 @@ FUNCTION edit_user(new)
            CALL DIALOG.setFieldActive("user_id", new)
         AFTER FIELD user_id
            IF new THEN
-              SELECT user_id FROM users
-                     WHERE user_id = r_user.user_id
-              IF sqlca.sqlcode == 0 THEN
+              IF libutil.user_id_exists( r_user.user_id ) THEN
                  ERROR "User id exists already"
                  NEXT FIELD user_id
               END IF
@@ -166,19 +164,11 @@ FUNCTION edit_user(new)
     END IF
     TRY
        IF new THEN
-          CALL libutil.users_add(
-                       r_user.user_id,
-                       NULL,
-                       r_user.user_name
-               )
+          CALL libutil.users_add(r_user.user_id, NULL, r_user.user_name, r_user.user_status)
           CALL libutil.datafilter_define(r_user.user_id, "city", NULL)
           CALL libutil.datafilter_define(r_user.user_id, "contact", NULL)
        ELSE
-          CALL libutil.users_mod(
-                       r_user.user_id,
-                       r_user.user_name,
-                       r_user.user_status
-               )
+          CALL libutil.users_mod(r_user.user_id, r_user.user_name, r_user.user_status)
        END IF
     CATCH
        CALL mbox_ok(SQLERRMESSAGE)

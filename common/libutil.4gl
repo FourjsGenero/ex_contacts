@@ -5,6 +5,7 @@ IMPORT security
 PUBLIC TYPE t_user_id VARCHAR(20)
 PUBLIC TYPE t_user_auth VARCHAR(200)
 PUBLIC TYPE t_user_name VARCHAR(100)
+PUBLIC TYPE t_user_status INTEGER
 PUBLIC TYPE t_table_name VARCHAR(50)
 PUBLIC TYPE t_where_part VARCHAR(250)
 
@@ -12,7 +13,7 @@ PUBLIC TYPE t_user_disp RECORD
            user_id t_user_id,
            user_has_pswd BOOLEAN,
            user_name t_user_name,
-           user_status INTEGER
+           user_status t_user_status
        END RECORD
 
 PUBLIC TYPE t_datafilter RECORD
@@ -96,9 +97,9 @@ FUNCTION users_disp_load(arr)
     DEFINE i INTEGER,
            rec RECORD
                user_id t_user_id,
-               user_auth BOOLEAN,
+               user_auth t_user_auth,
                user_name t_user_name,
-               user_status INTEGER
+               user_status t_user_status
            END RECORD
     CALL arr.clear()
     DECLARE c_users CURSOR FOR
@@ -125,16 +126,24 @@ FUNCTION users_server_table()
        user_id VARCHAR(20) NOT NULL,
        user_auth VARCHAR(200),
        user_name VARCHAR(100) NOT NULL,
-       user_status SMALLINT NOT NULL,
+       user_status INTEGER NOT NULL,
        PRIMARY KEY(user_id)
     )
 END FUNCTION
 
-FUNCTION users_add(usrid,uauth,uname)
+FUNCTION user_id_exists(usrid)
+    DEFINE usrid, id t_user_id
+    SELECT user_id INTO id FROM users
+                     WHERE user_id = usrid
+    RETURN ( sqlca.sqlcode == 0 )
+END FUNCTION
+
+FUNCTION users_add(usrid,uauth,uname,ustat)
     DEFINE usrid t_user_id,
            uauth t_user_auth,
-           uname t_user_name
-    INSERT INTO users VALUES (usrid, uauth, uname, 1)
+           uname t_user_name,
+           ustat t_user_status
+    INSERT INTO users VALUES (usrid, uauth, uname, ustat)
 END FUNCTION
 
 PUBLIC FUNCTION pswd_match(p1,p2)
@@ -154,7 +163,7 @@ END FUNCTION
 FUNCTION users_mod(usrid,uname,ustat)
     DEFINE usrid t_user_id,
            uname t_user_name,
-           ustat SMALLINT
+           ustat t_user_status
     UPDATE users SET
            user_name = uname,
            user_status = ustat
@@ -166,11 +175,6 @@ FUNCTION users_clear_auth(usrid)
     UPDATE users SET
            user_auth = NULL
        WHERE user_id=usrid
-END FUNCTION
-
-FUNCTION users_suspend(usrid)
-    DEFINE usrid t_user_id
-    UPDATE users SET user_status = 1 WHERE user_id=usrid
 END FUNCTION
 
 FUNCTION users_del(usrid)
@@ -194,7 +198,7 @@ FUNCTION users_check(usrid,uauth)
            uauth t_user_auth -- Encrypted
     DEFINE uname t_user_name,
            curr_auth t_user_auth, -- Encrypted
-           ustat INTEGER
+           ustat t_user_status
     SELECT user_name, user_auth, user_status
       INTO uname, curr_auth, ustat
       FROM users
