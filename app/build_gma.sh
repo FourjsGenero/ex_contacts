@@ -4,12 +4,18 @@ then
     exit 1
 fi
 
+if test -n "$FGLGBCDIR"
+then
+    gbc_version="--build-gbc-runtime $FGLGBCDIR"
+fi
+
 gma_app_output_dir=$TOP/build/gma
 mkdir -p $gma_app_output_dir
 
 gmabuildtool build \
     --android-sdk $ANDROID_SDK_ROOT \
     --clean \
+    $gbc_version \
     --build-force-scaffold-update --build-quietly \
     --build-output-apk-name contacts \
     --build-apk-outputs $gma_app_output_dir \

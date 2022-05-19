@@ -220,6 +220,8 @@ PRIVATE FUNCTION contact_list()
               ERROR %"contacts.error.cantdel1"
               LET int_flag = TRUE
            END IF
+        --ON ACTION gbc_version
+        --   CALL mbox_ok(SFMT("GBC version: %1", ui.Interface.getUniversalClientVersion()))
         ON ACTION sync
            IF synchronize(FALSE,TRUE) THEN
               CALL DIALOG.setCurrentRow("sr",1)
