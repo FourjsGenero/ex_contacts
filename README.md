@@ -55,11 +55,6 @@ not interface with the integrated contacts list of the mobile device.
 
 ![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-003.png)
 
-Map screen shot:
-
-![Genero Contacts app (Android)](https://github.com/FourjsGenero/ex_contacts/raw/master/docs/contacts-screen-004.png)
-
-
 ## The server database (UTF-8)
 
 For production, it is better to use a real multi-user DB such as Informix
