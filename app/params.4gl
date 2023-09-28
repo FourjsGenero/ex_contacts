@@ -6,11 +6,11 @@ IMPORT FGL password
 IMPORT FGL dbsync_contact
 
 PUBLIC DEFINE param_defaults RECORD
-          user_id t_user_id
+          user_id libutil.t_user_id
        END RECORD
 
 PUBLIC DEFINE parameters RECORD
-          user_id t_user_id,
+          user_id libutil.t_user_id,
           user_auth STRING, -- Encrypted
           cdb_format STRING,
           cdb_protocol STRING,
@@ -25,12 +25,11 @@ PUBLIC DEFINE parameters RECORD
           last_sync DATETIME YEAR TO FRACTION(3)
        END RECORD
 
-PRIVATE FUNCTION mbox_ok(msg)
-    DEFINE msg STRING
+PRIVATE FUNCTION mbox_ok(msg STRING) RETURNS ()
     CALL libutil.mbox_ok(%"contnote.title",msg)
 END FUNCTION
 
-PUBLIC FUNCTION params_cdb_url()
+PUBLIC FUNCTION params_cdb_url() RETURNS STRING
     DEFINE url STRING
     LET url = SFMT("%1://%2:%3",
                    parameters.cdb_protocol,
@@ -45,21 +44,21 @@ PUBLIC FUNCTION params_cdb_url()
     RETURN url
 END FUNCTION
 
-PRIVATE FUNCTION change_password()
+PRIVATE FUNCTION change_password() RETURNS ()
     DEFINE r SMALLINT,
            old_pwd STRING,
            new_pwd STRING,
            msg STRING
     WHILE TRUE
         -- Old and new passwords are entered in clear...
-        CALL enter_password() RETURNING r, old_pwd, new_pwd
+        CALL password.enter_password() RETURNING r, old_pwd, new_pwd
         IF r==-1 THEN
            EXIT WHILE
         END IF
         IF r==0 THEN
-            CALL dbsync_contacts_set_sync_url( params_cdb_url() )
-            CALL dbsync_contacts_set_sync_format( parameters.cdb_format )
-            CALL dbsync_change_user_auth(
+            CALL dbsync_contact.dbsync_contacts_set_sync_url( params_cdb_url() )
+            CALL dbsync_contact.dbsync_contacts_set_sync_format( parameters.cdb_format )
+            CALL dbsync_contact.dbsync_change_user_auth(
                         parameters.user_id,
                         libutil.user_auth_encrypt( old_pwd ),
                         libutil.user_auth_encrypt( new_pwd )
@@ -80,9 +79,9 @@ END FUNCTION
 PRIVATE FUNCTION test_connection()
     DEFINE r INTEGER, url, msg STRING
     LET url = params_cdb_url()
-    CALL dbsync_contacts_set_sync_url( url )
-    CALL dbsync_contacts_set_sync_format( parameters.cdb_format )
-    CALL dbsync_test_connection( parameters.user_id, parameters.user_auth )
+    CALL dbsync_contact.dbsync_contacts_set_sync_url( url )
+    CALL dbsync_contact.dbsync_contacts_set_sync_format( parameters.cdb_format )
+    CALL dbsync_contact.dbsync_test_connection( parameters.user_id, parameters.user_auth )
          RETURNING r, msg
     IF r==0 THEN
        CALL mbox_ok(%"contacts.mess.connsucc")
@@ -92,8 +91,7 @@ PRIVATE FUNCTION test_connection()
     RETURN r
 END FUNCTION
 
-FUNCTION edit_settings(init)
-    DEFINE init BOOLEAN
+FUNCTION edit_settings(init BOOLEAN) RETURNS BOOLEAN
     DEFINE cdb_url STRING,
            tested BOOLEAN
     OPEN WINDOW w_params WITH FORM "params"
@@ -145,11 +143,11 @@ FUNCTION edit_settings(init)
     RETURN (NOT int_flag)
 END FUNCTION
 
-PRIVATE FUNCTION get_settings_file()
+PRIVATE FUNCTION get_settings_file() RETURNS STRING
     RETURN os.Path.join(os.Path.pwd(),"contacts.dat")
 END FUNCTION
 
-PUBLIC FUNCTION load_settings()
+PUBLIC FUNCTION load_settings() RETURNS INTEGER
     DEFINE fn, data STRING,
            ch base.Channel,
            ft BOOLEAN
@@ -187,7 +185,7 @@ PUBLIC FUNCTION load_settings()
     END IF
 END FUNCTION
 
-FUNCTION save_settings()
+FUNCTION save_settings() RETURNS ()
     DEFINE fn, data STRING,
            ch base.Channel
     LET data = util.JSON.stringify( parameters )

@@ -24,8 +24,8 @@ PUBLIC TYPE t_dbsync_event_array DYNAMIC ARRAY OF t_dbsync_event
 
 PUBLIC TYPE t_selist RECORD
            command STRING,
-           user_id t_user_id,
-           user_auth t_user_auth ATTRIBUTE(XMLOPTIONAL), -- Encrypted!
+           user_id libutil.t_user_id,
+           user_auth libutil.t_user_auth ATTRIBUTE(XMLOPTIONAL), -- Encrypted!
            first_sync BOOLEAN,
            status STRING ATTRIBUTE(XMLOPTIONAL),
            elw RECORD ATTRIBUTE(XMLOptional) -- Record needed for XML serialization
@@ -62,8 +62,11 @@ PRIVATE DEFINE google_api_key STRING,
                download_count INTEGER
 
 
-PRIVATE FUNCTION add_event(events, type, data)
-    DEFINE events t_dbsync_event_array, type, data STRING
+PRIVATE FUNCTION add_event(
+    events t_dbsync_event_array,
+    type STRING,
+    data STRING
+) RETURNS ()
     DEFINE x INTEGER
     LET x = events.getLength()+1
     LET events[x].ident = x
@@ -71,15 +74,18 @@ PRIVATE FUNCTION add_event(events, type, data)
     LET events[x].data = data
 END FUNCTION
 
-PRIVATE FUNCTION send_post_command(selist)
-    DEFINE selist t_selist
-    DEFINE selist_res t_selist,
-           http_req com.HttpRequest,
+PRIVATE FUNCTION send_post_command(
+    selist t_selist,
+    selist_res t_selist INOUT
+) RETURNS STRING
+    DEFINE http_req com.HttpRequest,
            http_resp com.HttpResponse,
            d xml.DomDocument,
            n xml.DomNode,
            json STRING,
            err STRING
+
+    INITIALIZE selist_res TO NULL
 
     IF sync_url IS NULL OR sync_format IS NULL THEN
        DISPLAY "send_post_command: Sync URL or format are not defined."
@@ -126,16 +132,20 @@ PRIVATE FUNCTION send_post_command(selist)
         LET err = SFMT("HTTP POST request error: STATUS=%1 (%2)",status,sqlca.sqlerrm)
         INITIALIZE selist_res TO NULL
     END TRY
-    RETURN err, selist_res.*
+    RETURN err
 END FUNCTION
 
-PRIVATE FUNCTION send_get_request(command, query)
-    DEFINE command, query STRING
-    DEFINE selist_res t_selist,
-           http_req com.HttpRequest,
+PRIVATE FUNCTION send_get_request(
+    command STRING,
+    query STRING,
+    selist_res t_selist INOUT
+) RETURNS STRING
+    DEFINE http_req com.HttpRequest,
            http_resp com.HttpResponse,
            d xml.DomDocument,
            uri, err STRING
+
+    INITIALIZE selist_res TO NULL
 
     IF sync_url IS NULL OR sync_format IS NULL THEN
        DISPLAY "send_get_request: Sync URL or format are not defined."
@@ -171,11 +181,10 @@ PRIVATE FUNCTION send_get_request(command, query)
         LET err = SFMT("HTTP GET request error: STATUS=%1 (%2)",status,sqlca.sqlerrm)
         INITIALIZE selist_res TO NULL
     END TRY
-    RETURN err, selist_res.*
+    RETURN err
 END FUNCTION
 
-PRIVATE FUNCTION dbsync_result_desc(sync_status)
-    DEFINE sync_status STRING
+PRIVATE FUNCTION dbsync_result_desc(sync_status STRING) RETURNS (INTEGER,STRING)
     CASE sync_status
        WHEN "user_invalid"
          RETURN -2, %"contacts.mess.cf.user_invalid"
@@ -200,12 +209,13 @@ PRIVATE FUNCTION dbsync_result_desc(sync_status)
     END CASE
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_change_user_auth(user_id, old_auth, new_auth)
-    DEFINE user_id t_user_id,
-           old_auth t_user_auth, -- Encrypted
-           new_auth t_user_auth  -- Encrypted
+PUBLIC FUNCTION dbsync_change_user_auth(
+    user_id libutil.t_user_id,
+    old_auth libutil.t_user_auth, -- Encrypted
+    new_auth libutil.t_user_auth  -- Encrypted
+) RETURNS (INT,STRING)
     DEFINE selist t_selist,
-           s INT,
+           s INTEGER,
            result STRING,
            selist_res t_selist,
            desc STRING
@@ -214,7 +224,7 @@ PUBLIC FUNCTION dbsync_change_user_auth(user_id, old_auth, new_auth)
     LET selist.user_auth = old_auth
     LET selist.first_sync = FALSE
     LET selist.elw.events[1].data = new_auth
-    CALL send_post_command(selist.*) RETURNING result, selist_res.*
+    LET result = send_post_command(selist,selist_res)
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: status = %1",result)
     END IF
@@ -222,11 +232,12 @@ PUBLIC FUNCTION dbsync_change_user_auth(user_id, old_auth, new_auth)
     RETURN s, desc
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_test_connection(user_id, user_auth)
-    DEFINE user_id t_user_id,
-           user_auth t_user_auth
+PUBLIC FUNCTION dbsync_test_connection(
+    user_id libutil.t_user_id,
+    user_auth libutil.t_user_auth
+) RETURNS (INT,STRING)
     DEFINE selist t_selist,
-           s INT,
+           s INTEGER,
            result STRING,
            selist_res t_selist,
            desc STRING
@@ -234,7 +245,7 @@ PUBLIC FUNCTION dbsync_test_connection(user_id, user_auth)
     LET selist.user_id = user_id
     LET selist.user_auth = user_auth
     LET selist.first_sync = FALSE
-    CALL send_post_command(selist.*) RETURNING result, selist_res.*
+    LET result = send_post_command(selist,selist_res)
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: status = %1",result)
     END IF
@@ -242,15 +253,16 @@ PUBLIC FUNCTION dbsync_test_connection(user_id, user_auth)
     RETURN s, desc
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_bind_user(user_id, user_auth, contact_num)
-    DEFINE user_id t_user_id,
-           user_auth t_user_auth,
-           contact_num INTEGER
-    DEFINE selist t_selist, s INT,
+PUBLIC FUNCTION dbsync_bind_user(
+    user_id libutil.t_user_id,
+    user_auth libutil.t_user_auth,
+    contact_num INTEGER
+) RETURNS (INT,STRING,INT)
+    DEFINE selist t_selist, s INTEGER,
            result STRING,
            selist_res t_selist,
            desc STRING,
-           old_cnum INT
+           old_cnum INTEGER
     IF contact_num < 0 THEN
        RETURN -99, %"contacts.mess.bunew", 0
     END IF
@@ -262,7 +274,7 @@ PUBLIC FUNCTION dbsync_bind_user(user_id, user_auth, contact_num)
     LET selist.elw.events[1].ident = 1
     LET selist.elw.events[1].type = "set_user"
     LET selist.elw.events[1].data = contact_num
-    CALL send_post_command(selist.*) RETURNING result, selist_res.*
+    LET result = send_post_command(selist,selist_res)
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: status = %1",result), 0
     END IF
@@ -271,7 +283,7 @@ PUBLIC FUNCTION dbsync_bind_user(user_id, user_auth, contact_num)
        IF selist_res.elw.events[1].type = "old_cnum" THEN
           LET old_cnum = selist_res.elw.events[1].data
           UPDATE contact
-             SET contact_user = v_undef,
+             SET contact_user = libutil.v_undef,
                  contact_loc_lon = NULL,
                  contact_loc_lat = NULL
            WHERE contact_num = old_cnum
@@ -280,11 +292,13 @@ PUBLIC FUNCTION dbsync_bind_user(user_id, user_auth, contact_num)
     RETURN s, desc, old_cnum
 END FUNCTION
 
-PRIVATE FUNCTION do_bind_user(uid, cnum, last_mtime, curr_mtime, events)
-    DEFINE uid t_user_id,
-           cnum INTEGER,
-           last_mtime, curr_mtime DATETIME YEAR TO FRACTION(3),
-           events t_dbsync_event_array
+PRIVATE FUNCTION do_bind_user(
+    uid libutil.t_user_id,
+    cnum INTEGER,
+    last_mtime DATETIME YEAR TO FRACTION(3),
+    curr_mtime DATETIME YEAR TO FRACTION(3),
+    events t_dbsync_event_array
+) RETURNS INTEGER
     DEFINE old_cnum INTEGER, status STRING
     LET status = "success"
     WHENEVER ERROR CONTINUE
@@ -295,7 +309,7 @@ PRIVATE FUNCTION do_bind_user(uid, cnum, last_mtime, curr_mtime, events)
           -- Unbind uid from old contact 
           UPDATE contact
              SET contact_rec_mtime = curr_mtime,
-                 contact_user = v_undef,
+                 contact_user = libutil.v_undef,
                  contact_loc_lon = NULL,
                  contact_loc_lat = NULL
            WHERE contact_num = old_cnum
@@ -313,7 +327,7 @@ PRIVATE FUNCTION do_bind_user(uid, cnum, last_mtime, curr_mtime, events)
               contact_user = uid
         WHERE contact_num = cnum
           AND contact_rec_mtime <= last_mtime
-          AND contact_user = v_undef -- Do not overwrite another user id!
+          AND contact_user = libutil.v_undef -- Do not overwrite another user id!
        IF sqlca.sqlcode!=0 OR sqlca.sqlerrd[3]!=1 THEN
           LET status = "bind_user_failed"
        END IF
@@ -322,19 +336,19 @@ PRIVATE FUNCTION do_bind_user(uid, cnum, last_mtime, curr_mtime, events)
     RETURN status
 END FUNCTION
 
-PRIVATE FUNCTION get_contact_geoloc(c_num, c_street, c_city, c_pos)
-    DEFINE c_num LIKE contact.contact_num,
-           c_street LIKE contact.contact_street,
-           c_city LIKE contact.contact_city,
-           c_pos t_geoloc_position
+PRIVATE FUNCTION get_contact_geoloc(
+    c_num LIKE contact.contact_num,
+    c_street LIKE contact.contact_street,
+    c_city LIKE contact.contact_city,
+    lon t_geoloc_unit,
+    lat t_geoloc_unit
+) RETURNS (t_geoloc_unit,t_geoloc_unit)
     DEFINE s INTEGER,
            c_city_name LIKE city.city_name,
            a_pos t_geoloc_position
-
     LET c_num = NULL -- Unused for now
-
     IF c_city==1000 THEN
-       RETURN c_pos.*
+       RETURN lon, lat
     END IF
     SELECT city_name INTO c_city_name
            FROM city WHERE city_num = c_city
@@ -343,18 +357,19 @@ PRIVATE FUNCTION get_contact_geoloc(c_num, c_street, c_city, c_pos)
     END IF
     CALL geocod_find_coord(c_street,c_city_name) RETURNING s, a_pos.*
     IF s==0 THEN
-       RETURN a_pos.*
+       RETURN a_pos.longitude, a_pos.latitude
     ELSE
-       RETURN c_pos.*
+       RETURN lon, lat
     END IF
-
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_update_geoloc(user_id, user_auth, lon, lat)
-    DEFINE user_id t_user_id,
-           user_auth t_user_auth,
-           lon, lat t_geoloc_unit
-    DEFINE selist t_selist, s INT,
+PUBLIC FUNCTION dbsync_update_geoloc(
+    user_id libutil.t_user_id,
+    user_auth libutil.t_user_auth,
+    lon t_geoloc_unit,
+    lat t_geoloc_unit
+) RETURNS (INT,STRING)
+    DEFINE selist t_selist, s INTEGER,
            pos t_geoloc_position,
            result STRING,
            selist_res t_selist,
@@ -368,7 +383,7 @@ PUBLIC FUNCTION dbsync_update_geoloc(user_id, user_auth, lon, lat)
     LET pos.longitude = lon
     LET pos.latitude = lat
     LET selist.elw.events[1].data = util.JSON.stringify(pos)
-    CALL send_post_command(selist.*) RETURNING result, selist_res.*
+    LET result = send_post_command(selist,selist_res)
     IF result IS NOT NULL THEN
        RETURN -1, SFMT("ERROR: %1",result)
     END IF
@@ -382,9 +397,11 @@ PUBLIC FUNCTION dbsync_update_geoloc(user_id, user_auth, lon, lat)
     RETURN s, desc
 END FUNCTION
 
-PRIVATE FUNCTION do_update_geoloc(uid, ps, curr_mtime)
-    DEFINE uid t_user_id, ps STRING,
-           curr_mtime DATETIME YEAR TO FRACTION(3)
+PRIVATE FUNCTION do_update_geoloc(
+    uid libutil.t_user_id,
+    ps STRING,
+    curr_mtime DATETIME YEAR TO FRACTION(3)
+) RETURNS INTEGER
     DEFINE pos t_geoloc_position, status STRING
     LET status = "success"
     CALL util.JSON.parse(ps, pos)
@@ -401,20 +418,21 @@ PRIVATE FUNCTION do_update_geoloc(uid, ps, curr_mtime)
     RETURN status
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_sync_contacts_send(first_sync, user_id, user_auth)
-    DEFINE first_sync BOOLEAN,
-           user_id t_user_id,
-           user_auth t_user_auth
+PUBLIC FUNCTION dbsync_sync_contacts_send(
+    first_sync BOOLEAN,
+    user_id libutil.t_user_id,
+    user_auth libutil.t_user_auth
+) RETURNS (INT,STRING)
     DEFINE selist, selist_res t_selist,
            result, desc STRING,
-           s INT
+           s INTEGER
     LET selist.command = "mobile_changes"
     LET selist.user_id = user_id
     LET selist.user_auth = user_auth
     LET selist.first_sync = first_sync
     TRY
        CALL sync_contacts_collect_changes(user_id, selist.elw.events)
-       CALL send_post_command(selist.*) RETURNING result, selist_res.*
+       LET result = send_post_command(selist,selist_res)
        IF result IS NOT NULL THEN
           RETURN -2, result
        ELSE
@@ -430,15 +448,16 @@ PUBLIC FUNCTION dbsync_sync_contacts_send(first_sync, user_id, user_auth)
     RETURN 0, NULL
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_get_download_count()
+PUBLIC FUNCTION dbsync_get_download_count() RETURNS INTEGER
     RETURN download_items.getLength()
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, step_count)
-    DEFINE first_sync BOOLEAN,
-           user_id t_user_id,
-           user_auth t_user_auth,
-           step_count INTEGER
+PUBLIC FUNCTION dbsync_sync_contacts_download(
+    first_sync BOOLEAN,
+    user_id libutil.t_user_id,
+    user_auth libutil.t_user_auth,
+    step_count INTEGER
+) RETURNS (INT,STRING)
     DEFINE r, i, x, mode INTEGER,
            r_contact RECORD LIKE contact.*,
            r_contnote RECORD LIKE contnote.*,
@@ -484,8 +503,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
         OR download_items[x].type == "C2" THEN
 
            LET mode = IIF(download_items[x].type=="C1",1,2)
-           CALL send_get_request(SFMT("get_contact_%1",mode), query)
-                RETURNING result, selist_res.*
+           LET result = send_get_request(SFMT("get_contact_%1",mode), query, selist_res)
            IF result IS NOT NULL THEN
               LET r=-2
               GOTO download_fail
@@ -500,7 +518,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
                   GOTO download_fail
                END TRY
              WHEN "contact_notfound" -- Record has been deleted since POST
-               CALL dbsynclog_record(selist_res.status,"contact",download_items[x].num,NULL)
+               CALL libutil.dbsynclog_record(selist_res.status,"contact",download_items[x].num,NULL)
              WHEN "sql_error"
                   LET r=-4
                   GOTO download_fail
@@ -511,8 +529,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
 
         ELSE -- "NT"
 
-           CALL send_get_request("get_contnote",query)
-                RETURNING result, selist_res.*
+           LET result = send_get_request("get_contnote",query,selist_res)
            IF result IS NOT NULL THEN
               LET r=-2
               GOTO download_fail
@@ -527,7 +544,7 @@ PUBLIC FUNCTION dbsync_sync_contacts_download(first_sync, user_id, user_auth, st
                   GOTO download_fail
                END TRY
              WHEN "contnote_notfound" -- Record has been deleted since POST
-               CALL dbsynclog_record(selist_res.status,"contnote",download_items[x].num,NULL)
+               CALL libutil.dbsynclog_record(selist_res.status,"contnote",download_items[x].num,NULL)
              WHEN "sql_error"
                   LET r=-4
                   GOTO download_fail
@@ -551,9 +568,10 @@ LABEL download_fail:
 
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_send_return_receipt(user_id, user_auth)
-    DEFINE user_id t_user_id,
-           user_auth t_user_auth
+PUBLIC FUNCTION dbsync_send_return_receipt(
+    user_id libutil.t_user_id,
+    user_auth libutil.t_user_auth
+) RETURNS (INT,STRING)
     DEFINE result STRING,
            selist t_selist,
            selist_res t_selist
@@ -561,15 +579,17 @@ PUBLIC FUNCTION dbsync_send_return_receipt(user_id, user_auth)
     LET selist.user_id = user_id
     LET selist.user_auth = user_auth
     LET selist.first_sync = FALSE
-    CALL send_post_command(selist.*) RETURNING result, selist_res.*
+    LET result = send_post_command(selist,selist_res)
     IF result IS NOT NULL THEN
        RETURN -1, result
     END IF
     RETURN 0, NULL
 END FUNCTION
 
-PRIVATE FUNCTION sync_contacts_collect_changes(user_id, events)
-    DEFINE user_id t_user_id, events t_dbsync_event_array
+PRIVATE FUNCTION sync_contacts_collect_changes(
+    user_id libutil.t_user_id,
+    events t_dbsync_event_array
+) RETURNS ()
     DEFINE r_contact, r_contact_2 RECORD LIKE contact.*, dummy_byte BYTE,
            r_contnote RECORD LIKE contnote.*
 
@@ -629,23 +649,25 @@ PRIVATE FUNCTION sync_contacts_collect_changes(user_id, events)
 
 END FUNCTION
 
-PRIVATE FUNCTION sync_server_log(msg)
-    DEFINE msg STRING
+PRIVATE FUNCTION sync_server_log(msg STRING) RETURNS ()
     DISPLAY SFMT("SYNC SERVER / %1: %2", CURRENT, msg)
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
-    DEFINE selist_mod t_selist
-    DEFINE selist_res t_selist,
-           last_user_mtime DATETIME YEAR TO FRACTION(3),
+PUBLIC FUNCTION dbsync_contacts_sync_server(
+    selist_mod t_selist,
+    selist_res t_selist INOUT
+) RETURNS ()
+    DEFINE last_user_mtime DATETIME YEAR TO FRACTION(3),
            curr_user_mtime DATETIME YEAR TO FRACTION(3),
            updlist_contact DYNAMIC ARRAY OF INTEGER,  -- Contacts updated by client, no refresh needed
            ffrlist_contact DYNAMIC ARRAY OF INTEGER,  -- Contacts with conflicts, for full refresh with photo
            updlist_contnote DYNAMIC ARRAY OF INTEGER, -- Contact notes updated by client, no refresh needed
            r SMALLINT
 
+    INITIALIZE selist_res TO NULL
+
     IF selist_mod.command IS NULL THEN
-       RETURN selist_res.*
+       RETURN
     END IF
 
     LET selist_res.command = "result"
@@ -664,20 +686,20 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
        ELSE
           CALL sync_server_log(SFMT("Password change succeeded for %1", selist_mod.user_id))
        END IF
-       RETURN selist_res.*
+       RETURN
     END IF
 
     -- Always test user validity...
     LET selist_res.status = libutil.users_check(selist_mod.user_id, selist_mod.user_auth)
     IF selist_res.status != "success" THEN
        CALL sync_server_log(SFMT("User authentication failed for %1", selist_mod.user_id))
-       RETURN selist_res.*
+       RETURN
     END IF
 
     -- Test command -> return success result
     IF selist_mod.command == "test" THEN
        CALL sync_server_log(SFMT("Test ok for user: %1", selist_mod.user_id))
-       RETURN selist_res.*
+       RETURN
     END IF
 
     CALL libutil.datafilter_get_last_mtime(selist_mod.user_id, "contact", selist_mod.first_sync)
@@ -707,7 +729,7 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
                                             curr_user_mtime,
                                             selist_res.elw.events)
        -- Personal data, no need to use sync timestamp.
-       RETURN selist_res.*
+       RETURN
     END IF
 
     -- Update geolocation command
@@ -720,7 +742,7 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
                                                 selist_mod.elw.events[1].data,
                                                 curr_user_mtime)
        -- Personal data, no need to use sync timestamp.
-       RETURN selist_res.*
+       RETURN
     END IF
 
     -- Changes from mobile databases
@@ -759,7 +781,7 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
           LET selist_res.status = "mtime_regist_failed"
        END IF
 
-       RETURN selist_res.*
+       RETURN
 
     END IF
 
@@ -772,17 +794,17 @@ PUBLIC FUNCTION dbsync_contacts_sync_server(selist_mod)
           CALL sync_server_log(SFMT("Modification timestamp commit failed for %1", selist_mod.user_id))
           LET selist_res.status = "mtime_commit_failed"
        END IF
-       RETURN selist_res.*
+       RETURN
     END IF
 
     CALL sync_server_log(SFMT("Invalid command: %1", selist_mod.command))
     LET selist_res.status = "invalid_command"
-    RETURN selist_res.*
 
 END FUNCTION
 
-PRIVATE FUNCTION parse_get_request_uri(uri)
-    DEFINE uri STRING
+PRIVATE FUNCTION parse_get_request_uri(
+    uri STRING
+) RETURNS (STRING,STRING,STRING,STRING)
     DEFINE x INTEGER,
            tok base.StringTokenizer,
            query, param STRING,
@@ -834,13 +856,16 @@ PRIVATE FUNCTION parse_get_request_uri(uri)
     RETURN user_id, user_auth, req_type, obj_id
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_contacts_get_request(uri)
-    DEFINE uri STRING
+PUBLIC FUNCTION dbsync_contacts_get_request(
+    uri STRING,
+    selist_res t_selist INOUT
+) RETURNS ()
     DEFINE user_id STRING,
            user_auth STRING,
            req_type STRING,
-           obj_id INTEGER,
-           selist_res t_selist
+           obj_id INTEGER
+
+    INITIALIZE selist_res TO NULL
 
     LET selist_res.command = "result"
 
@@ -849,7 +874,7 @@ PUBLIC FUNCTION dbsync_contacts_get_request(uri)
     IF user_id IS NULL THEN
        LET selist_res.status = "invalid_uri"
        CALL sync_server_log(SFMT("Invalid URL: %1", uri))
-       RETURN selist_res.*
+       RETURN
     END IF
 
     LET selist_res.user_id = user_id
@@ -859,7 +884,7 @@ PUBLIC FUNCTION dbsync_contacts_get_request(uri)
     LET selist_res.status = libutil.users_check(user_id, user_auth)
     IF selist_res.status != "success" THEN
        CALL sync_server_log(SFMT("User authentication failed for %1", user_id))
-       RETURN selist_res.*
+       RETURN
     END IF
 
     -- Note: The record may have been deleted by another client since last POST
@@ -884,15 +909,15 @@ PUBLIC FUNCTION dbsync_contacts_get_request(uri)
              CALL sync_server_log(SFMT("Invalid GET command: %1", req_type))
     END CASE
 
-    RETURN selist_res.*
-
 END FUNCTION
 
-PRIVATE FUNCTION json_fetch_contact(mode, num)
-    DEFINE mode SMALLINT, num INTEGER
+PRIVATE FUNCTION json_fetch_contact(
+    mode SMALLINT,
+    num INTEGER
+) RETURNS (STRING,STRING)
     DEFINE r_contact RECORD LIKE contact.*,
            sqlstat INTEGER
-    CALL do_select_contact(mode, num) RETURNING sqlstat, r_contact.*
+    LET sqlstat = do_select_contact(mode,num,r_contact)
     CASE
       WHEN sqlstat==0
            RETURN "success", util.JSON.stringify(r_contact)
@@ -903,8 +928,9 @@ PRIVATE FUNCTION json_fetch_contact(mode, num)
     END CASE
 END FUNCTION
 
-PRIVATE FUNCTION json_fetch_contnote(num)
-    DEFINE num INTEGER
+PRIVATE FUNCTION json_fetch_contnote(
+    num INTEGER
+) RETURNS (STRING,STRING)
     DEFINE r_contnote RECORD LIKE contnote.*,
            sqlstat INTEGER
     SELECT contnote.* INTO r_contnote.* FROM contnote
@@ -920,11 +946,13 @@ PRIVATE FUNCTION json_fetch_contnote(num)
     END CASE
 END FUNCTION
 
-PRIVATE FUNCTION do_select_contact(mode, cnum)
-    DEFINE mode SMALLINT,
-           cnum INTEGER
-    DEFINE r_contact RECORD LIKE contact.*,
-           sqlstat INTEGER
+PRIVATE FUNCTION do_select_contact(
+    mode SMALLINT,
+    cnum INTEGER,
+    r_contact RECORD LIKE contact.* INOUT
+) RETURNS INTEGER
+    DEFINE sqlstat INTEGER
+    INITIALIZE r_contact TO NULL
     LET sqlstat = 0
     TRY
        IF mode==1 THEN
@@ -970,12 +998,13 @@ PRIVATE FUNCTION do_select_contact(mode, cnum)
     CATCH
        LET sqlstat = sqlca.sqlcode
     END TRY
-    RETURN sqlstat, r_contact.*
+    RETURN sqlstat
 END FUNCTION
 
-PRIVATE FUNCTION do_update_contact(mode, r_contact)
-    DEFINE mode SMALLINT,
-           r_contact RECORD LIKE contact.*
+PRIVATE FUNCTION do_update_contact(
+    mode SMALLINT,
+    r_contact RECORD LIKE contact.*
+) RETURNS INTEGER
     DEFINE r INTEGER,
            last_city INTEGER,
            photo_mtime DATETIME YEAR TO FRACTION(3)
@@ -1023,22 +1052,16 @@ PRIVATE FUNCTION do_update_contact(mode, r_contact)
     RETURN r
 END FUNCTION
 
-PRIVATE FUNCTION do_mobile_changes(uid,
-                                   mod_events,
-                                   last_mtime,
-                                   curr_mtime,
-                                   res_events,
-                                   updlist_contact,
-                                   ffrlist_contact,
-                                   updlist_contnote)
-    DEFINE uid t_user_id,
-           mod_events t_dbsync_event_array,
-           last_mtime DATETIME YEAR TO FRACTION(3),
-           curr_mtime DATETIME YEAR TO FRACTION(3),
-           res_events t_dbsync_event_array,
-           updlist_contact DYNAMIC ARRAY OF INTEGER,
-           ffrlist_contact DYNAMIC ARRAY OF INTEGER,
-           updlist_contnote DYNAMIC ARRAY OF INTEGER
+PRIVATE FUNCTION do_mobile_changes(
+    uid libutil.t_user_id,
+    mod_events t_dbsync_event_array,
+    last_mtime DATETIME YEAR TO FRACTION(3),
+    curr_mtime DATETIME YEAR TO FRACTION(3),
+    res_events t_dbsync_event_array,
+    updlist_contact DYNAMIC ARRAY OF INTEGER,
+    ffrlist_contact DYNAMIC ARRAY OF INTEGER,
+    updlist_contnote DYNAMIC ARRAY OF INTEGER
+) RETURNS ()
     DEFINE select_stmt STRING,
            r_contact RECORD LIKE contact.*,
            r_contnote RECORD LIKE contnote.*,
@@ -1360,20 +1383,15 @@ PRIVATE FUNCTION do_mobile_changes(uid,
 
 END FUNCTION
 
-PRIVATE FUNCTION collect_central_changes(uid,
-                                         res_events,
-                                         first_sync,
-                                         last_mtime,
-                                         updlist_contact,
-                                         ffrlist_contact,
-                                         updlist_contnote)
-    DEFINE uid t_user_id,
-           res_events t_dbsync_event_array,
-           first_sync BOOLEAN,
-           last_mtime DATETIME YEAR TO FRACTION(3),
-           updlist_contact DYNAMIC ARRAY OF INTEGER,
-           ffrlist_contact DYNAMIC ARRAY OF INTEGER,
-           updlist_contnote DYNAMIC ARRAY OF INTEGER
+PRIVATE FUNCTION collect_central_changes(
+    uid libutil.t_user_id,
+    res_events t_dbsync_event_array,
+    first_sync BOOLEAN,
+    last_mtime DATETIME YEAR TO FRACTION(3),
+    updlist_contact DYNAMIC ARRAY OF INTEGER,
+    ffrlist_contact DYNAMIC ARRAY OF INTEGER,
+    updlist_contnote DYNAMIC ARRAY OF INTEGER
+) RETURNS ()
     DEFINE no_refresh_list STRING,
            r_contact RECORD LIKE contact.*,
            r_contnote RECORD LIKE contnote.*,
@@ -1474,9 +1492,10 @@ PRIVATE FUNCTION collect_central_changes(uid,
 
 END FUNCTION
 
-PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
-    DEFINE user_id t_user_id,
-           selist_res t_selist
+PRIVATE FUNCTION sync_contacts_apply_results(
+    user_id libutil.t_user_id,
+    selist_res t_selist
+) RETURNS (INTEGER,STRING)
     DEFINE r_contact RECORD LIKE contact.*,
            r_contnote RECORD LIKE contnote.*,
            resinfo t_resinfo,
@@ -1489,7 +1508,7 @@ PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
        RETURN 0, NULL
     END IF
     LET download_count = 0
-    CALL dbsynclog_clear()
+    CALL libutil.dbsynclog_clear()
     CALL download_items.clear()
     IF selist_res.status != "success" THEN
        CALL dbsync_result_desc(selist_res.status) RETURNING s, desc
@@ -1507,37 +1526,37 @@ PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                DELETE FROM contnote WHERE contnote_contact = resinfo.num
                DELETE FROM contact WHERE contact_num = resinfo.num
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "delete_contact_fail"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"R",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "delete_contact_conflict"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"E",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "create_contact_success"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"s",resinfo.info)
             WHEN "create_contact_fail"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"C",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "update_contact_success"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"S",resinfo.info)
             WHEN "update_contact_phantom"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"P",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "update_contact_fail"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"X",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "update_contact_conflict"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contact(resinfo.num,"M",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contact",resinfo.num,resinfo.info)
             WHEN "refresh_contact_1" -- With photo data 
                CALL util.JSON.parse(selist_res.elw.events[i].data, r_contact)
                LET x = download_items.getLength()+1
@@ -1558,41 +1577,41 @@ PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
             WHEN "delete_contnote_phantom"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                DELETE FROM contnote WHERE contnote_num = resinfo.num
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "delete_contnote_fail"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"R",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "delete_contnote_conflict"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"E",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "create_contnote_success"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"s",resinfo.info)
             WHEN "create_contnote_phantom_contact"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"C",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "create_contnote_fail"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"C",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "update_contnote_success"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"S",resinfo.info)
             WHEN "update_contnote_phantom"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"P",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "update_contnote_fail"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"X",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "update_contnote_conflict"
                CALL util.JSON.parse(selist_res.elw.events[i].data, resinfo)
                CALL mark_contnote(resinfo.num,"M",resinfo.info)
-               CALL dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
+               CALL libutil.dbsynclog_record(selist_res.elw.events[i].type,"contnote",resinfo.num,resinfo.info)
             WHEN "refresh_contnote"
                CALL util.JSON.parse(selist_res.elw.events[i].data, r_contnote)
                LET x = download_items.getLength()+1
@@ -1608,9 +1627,10 @@ PRIVATE FUNCTION sync_contacts_apply_results(user_id, selist_res)
     RETURN 0, NULL
 END FUNCTION
 
-PRIVATE FUNCTION refresh_contact(mode, r_contact)
-    DEFINE mode SMALLINT,
-           r_contact RECORD LIKE contact.*
+PRIVATE FUNCTION refresh_contact(
+    mode SMALLINT,
+    r_contact RECORD LIKE contact.*
+) RETURNS ()
     DEFINE x, r INTEGER
     SELECT contact_num INTO x
       FROM contact WHERE contact_num = r_contact.contact_num
@@ -1621,8 +1641,7 @@ PRIVATE FUNCTION refresh_contact(mode, r_contact)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION refresh_contnote(rec)
-    DEFINE rec RECORD LIKE contnote.*
+PRIVATE FUNCTION refresh_contnote(rec RECORD LIKE contnote.*) RETURNS ()
     DEFINE x INTEGER
     SELECT contnote_num INTO x
       FROM contnote WHERE contnote_num = rec.contnote_num
@@ -1634,8 +1653,7 @@ PRIVATE FUNCTION refresh_contnote(rec)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION filter_contact(numlistdet)
-    DEFINE numlistdet t_numlistdet
+PRIVATE FUNCTION filter_contact(numlistdet t_numlistdet) RETURNS ()
     DEFINE i, x, num INTEGER, name VARCHAR(50), tmp STRING
     -- Delete contact records that are not in the filter list
     LET tmp = " NOT IN (-1"
@@ -1650,7 +1668,7 @@ PRIVATE FUNCTION filter_contact(numlistdet)
     FOREACH c_filter_contact INTO num, name
         DELETE FROM contnote WHERE contnote_contact = num
         DELETE FROM contact WHERE contact_num = num
-        CALL dbsynclog_record("filtered_or_deleted","contact",num,name)
+        CALL libutil.dbsynclog_record("filtered_or_deleted","contact",num,name)
     END FOREACH
     FREE c_filter_contact
     -- Delete contact note records that are not in the filter list
@@ -1664,23 +1682,22 @@ PRIVATE FUNCTION filter_contact(numlistdet)
     EXECUTE IMMEDIATE "DELETE FROM contnote WHERE contnote_num " || tmp
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_marked_for_deletion(mstat)
-    DEFINE mstat STRING
+PUBLIC FUNCTION dbsync_marked_for_deletion(mstat STRING) RETURNS BOOLEAN
     RETURN (mstat=="D" OR mstat=="T1" OR mstat=="T2")
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_marked_for_garbage(mstat)
-    DEFINE mstat STRING
+PUBLIC FUNCTION dbsync_marked_for_garbage(mstat STRING) RETURNS BOOLEAN
     RETURN (mstat=="M" OR mstat=="E")
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_marked_as_unsync(mstat)
-    DEFINE mstat STRING
+PUBLIC FUNCTION dbsync_marked_as_unsync(mstat STRING) RETURNS BOOLEAN
     RETURN (mstat=="C" OR mstat=="M" OR mstat=="X" OR mstat=="P" OR mstat=="E")
 END FUNCTION
 
-PRIVATE FUNCTION dbsync_mstat_info(mode,mstat)
-    DEFINE mode, mstat STRING
+PRIVATE FUNCTION dbsync_mstat_info(
+    mode STRING,
+    mstat STRING
+) RETURNS STRING
     DEFINE val STRING
     CASE mstat
        WHEN "S"  LET val=IIF(mode=="D",%"contacts.mstatdesc.synchro",NULL)
@@ -1707,18 +1724,18 @@ PRIVATE FUNCTION dbsync_mstat_info(mode,mstat)
     RETURN val
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_mstat_desc(mstat)
-    DEFINE mstat STRING
+PUBLIC FUNCTION dbsync_mstat_desc(mstat STRING) RETURNS STRING
     RETURN dbsync_mstat_info("D",mstat)
 END FUNCTION
 
-PUBLIC FUNCTION dbsync_mstat_color(mstat)
-    DEFINE mstat STRING
+PUBLIC FUNCTION dbsync_mstat_color(mstat STRING) RETURNS STRING
     RETURN dbsync_mstat_info("C",mstat)
 END FUNCTION
 
-PRIVATE FUNCTION update_contact_geoloc(num, creupd_info)
-    DEFINE num INTEGER, creupd_info t_creupd_info
+PRIVATE FUNCTION update_contact_geoloc(
+    num INTEGER,
+    creupd_info t_creupd_info
+) RETURNS ()
     DEFINE lon, lat t_geoloc_unit
     IF creupd_info.contact_loc_lon IS NOT NULL THEN
        LET lon = creupd_info.contact_loc_lon
@@ -1730,8 +1747,7 @@ PRIVATE FUNCTION update_contact_geoloc(num, creupd_info)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION new_unsync_name(name)
-    DEFINE name STRING
+PRIVATE FUNCTION new_unsync_name(name STRING) RETURNS STRING
     DEFINE x SMALLINT
     LET x = name.getIndexOf("(!",1)
     IF x > 1 THEN
@@ -1744,8 +1760,11 @@ PRIVATE FUNCTION new_unsync_name(name)
     RETURN name || SFMT("(!%1)",CURRENT YEAR TO SECOND)
 END FUNCTION
 
-PRIVATE FUNCTION mark_contact(num,flag,info)
-    DEFINE num INTEGER, flag CHAR(2), info STRING
+PRIVATE FUNCTION mark_contact(
+    num INTEGER,
+    flag CHAR(2),
+    info STRING
+) RETURNS ()
     DEFINE creupd_info t_creupd_info,
            curr_name, new_name VARCHAR(50),
            new_num INTEGER
@@ -1794,8 +1813,11 @@ PRIVATE FUNCTION mark_contact(num,flag,info)
     END CASE
 END FUNCTION
 
-PRIVATE FUNCTION change_contact_num(old_num, new_num, new_flag)
-    DEFINE old_num, new_num INTEGER, new_flag CHAR(2)
+PRIVATE FUNCTION change_contact_num(
+    old_num INTEGER,
+    new_num INTEGER,
+    new_flag CHAR(2)
+) RETURNS ()
     DEFINE ct DATETIME YEAR TO FRACTION(3)
     -- Missing ON UPDATE CASCADE with Informix (SQLite / PostgreSQL only)!!!!
     -- Must create a temp contact to update the contnote detail...
@@ -1809,7 +1831,7 @@ PRIVATE FUNCTION change_contact_num(old_num, new_num, new_flag)
                          '0', ct, '0',
                          '<temp>', 'N', 1000,
                          NULL, NULL, NULL,
-                         v_undef )
+                         libutil.v_undef )
     UPDATE contnote SET contnote_contact=0 WHERE contnote_contact=old_num
     UPDATE contact
        SET contact_num = new_num,
@@ -1819,8 +1841,11 @@ PRIVATE FUNCTION change_contact_num(old_num, new_num, new_flag)
     DELETE FROM contact WHERE contact_num=0
 END FUNCTION
 
-PRIVATE FUNCTION mark_contnote(num,flag,info)
-    DEFINE num INTEGER, flag CHAR(2), info STRING
+PRIVATE FUNCTION mark_contnote(
+    num INTEGER,
+    flag CHAR(2),
+    info STRING
+) RETURNS ()
     DEFINE new_num INTEGER
     CASE
     WHEN dbsync_marked_as_unsync(flag)
@@ -1863,23 +1888,19 @@ END FUNCTION
 -- this key must be generated from google developer project.
 -- See https://developers.google.com/maps/documentation/geocoding
 
-FUNCTION dbsync_contacts_set_google_api_key(value)
-    DEFINE value STRING
+FUNCTION dbsync_contacts_set_google_api_key(value STRING)
     LET google_api_key = value
 END FUNCTION
 
-FUNCTION dbsync_contacts_set_sync_url(value)
-    DEFINE value STRING
+FUNCTION dbsync_contacts_set_sync_url(value STRING)
     LET sync_url = value
 END FUNCTION
 
-FUNCTION dbsync_contacts_set_sync_format(value)
-    DEFINE value STRING
+FUNCTION dbsync_contacts_set_sync_format(value STRING)
     LET sync_format = value
 END FUNCTION
 
-PRIVATE FUNCTION replace_blank_to_plus(s)
-    DEFINE s STRING
+PRIVATE FUNCTION replace_blank_to_plus(s STRING) RETURNS STRING
     DEFINE b base.StringBuffer
     LET b = base.StringBuffer.create()
     CALL b.append(s)
@@ -1887,9 +1908,10 @@ PRIVATE FUNCTION replace_blank_to_plus(s)
     RETURN b.toString()
 END FUNCTION
 
-PRIVATE FUNCTION geocod_find_coord(address,city)
-    DEFINE address, city STRING
-    DEFINE position t_geoloc_position
+PRIVATE FUNCTION geocod_find_coord(
+    address STRING,
+    city STRING
+) RETURNS (INTEGER,t_geoloc_unit,t_geoloc_unit)
     DEFINE s SMALLINT,
            query_uri STRING,
            http_req com.HttpRequest,
@@ -1899,11 +1921,12 @@ PRIVATE FUNCTION geocod_find_coord(address,city)
            j_results util.JSONArray,
            j_first util.JSONObject,
            j_geometry util.JSONObject,
-           j_location util.JSONObject
+           j_location util.JSONObject,
+           position t_geoloc_position
 
     IF google_api_key IS NULL THEN
        CALL sync_server_log("ERROR: no google_api_key provided...")
-       RETURN -1, position.*
+       RETURN -1, NULL, NULL
     END IF
 
     LET query_uri = SFMT(
@@ -1921,17 +1944,17 @@ PRIVATE FUNCTION geocod_find_coord(address,city)
         LET http_resp = http_req.getResponse()
         IF http_resp.getStatusCode() != 200 THEN
            --RETURN http_resp.getStatusCode(), http_resp.getStatusDescription()
-           RETURN -2, position.*
+           RETURN -2, NULL, NULL
         END IF
         LET tmp = http_resp.getStatusDescription()
         IF ( tmp == "OK" || tmp == "no error" ) THEN
            --RETURN -1, SFMT("HTTP request status description: %1 ",tmp)
-           RETURN -3, position.*
+           RETURN -3, NULL, NULL
         END IF
         LET result = http_resp.getTextResponse()
     CATCH
         --RETURN -2, SFMT("HTTP request error: STATUS=%1 (%2)",STATUS,SQLCA.SQLERRM)
-        RETURN -4, position.*
+        RETURN -4, NULL, NULL
     END TRY
 
     TRY
@@ -1943,16 +1966,16 @@ PRIVATE FUNCTION geocod_find_coord(address,city)
         LET position.longitude = j_location.get("lng")
         LET position.latitude  = j_location.get("lat")
     CATCH
-        RETURN -5, position.*
+        RETURN -5, NULL, NULL
     END TRY
 
 --display SFMT("Found coords : %1 = %2 / %3", query_uri, position.latitude, position.longitude)
-    RETURN s, position.*
+    RETURN s, position.longitude, position.latitude
 
 END FUNCTION
 
 -- TODO: How to produce nice HTML?
-FUNCTION dbsync_generate_status_text()
+FUNCTION dbsync_generate_status_text() RETURNS STRING
     DEFINE i, cnt INTEGER,
            res base.StringBuffer,
            contlist DYNAMIC ARRAY OF RECORD -- Uses CHAR to format.

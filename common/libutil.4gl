@@ -40,7 +40,7 @@ PRIVATE DEFINE bfn_list DYNAMIC ARRAY OF RECORD
                END RECORD
 
 -- Check UTF-8 and char length semantics: Works only on server.
-FUNCTION check_utf8()
+FUNCTION check_utf8() RETURNS (INTEGER,STRING)
     IF ORD("€") == 8364 AND length("€") == 1 THEN
        RETURN 0, NULL
     ELSE
@@ -50,7 +50,7 @@ END FUNCTION
 
 -- Connection
 
-FUNCTION get_dbc_args()
+FUNCTION get_dbc_args() RETURNS (STRING,STRING,STRING,STRING,STRING)
     DEFINE i INTEGER
     DEFINE dbname, dbsrce, dbdriv, uname, upswd STRING
     FOR i = 1 TO num_args()
@@ -65,8 +65,13 @@ FUNCTION get_dbc_args()
     RETURN dbname, dbsrce, dbdriv, uname, upswd
 END FUNCTION
 
-FUNCTION do_connect(dbname,dbsrce,dbdriv,uname,upswd)
-    DEFINE dbname,dbsrce,dbdriv,uname,upswd STRING
+FUNCTION do_connect(
+    dbname STRING,
+    dbsrce STRING,
+    dbdriv STRING,
+    uname STRING,
+    upswd STRING
+) RETURNS INTEGER
     DEFINE tmp, dbspec STRING
     LET dbspec = dbname
     IF length(dbdriv)>0 THEN
@@ -92,8 +97,9 @@ END FUNCTION
 
 -- Users
 
-FUNCTION users_disp_load(arr)
-    DEFINE arr DYNAMIC ARRAY OF t_user_disp
+FUNCTION users_disp_load(
+    arr DYNAMIC ARRAY OF t_user_disp
+) RETURNS ()
     DEFINE i INTEGER,
            rec RECORD
                user_id t_user_id,
@@ -118,7 +124,7 @@ FUNCTION users_disp_load(arr)
     FREE c_users
 END FUNCTION
 
-FUNCTION users_server_table()
+FUNCTION users_server_table() RETURNS ()
     WHENEVER ERROR CONTINUE
     DROP TABLE users
     WHENEVER ERROR STOP
@@ -131,23 +137,23 @@ FUNCTION users_server_table()
     )
 END FUNCTION
 
-FUNCTION user_id_exists(usrid)
-    DEFINE usrid, id t_user_id
+FUNCTION user_id_exists(usrid t_user_id) RETURNS BOOLEAN
+    DEFINE id t_user_id
     SELECT user_id INTO id FROM users
                      WHERE user_id = usrid
     RETURN ( sqlca.sqlcode == 0 )
 END FUNCTION
 
-FUNCTION users_add(usrid,uauth,uname,ustat)
-    DEFINE usrid t_user_id,
-           uauth t_user_auth,
-           uname t_user_name,
-           ustat t_user_status
+FUNCTION users_add(
+    usrid t_user_id,
+    uauth t_user_auth,
+    uname t_user_name,
+    ustat t_user_status
+) RETURNS ()
     INSERT INTO users VALUES (usrid, uauth, uname, ustat)
 END FUNCTION
 
-PUBLIC FUNCTION pswd_match(p1,p2)
-    DEFINE p1 STRING, p2 STRING
+PUBLIC FUNCTION pswd_match(p1 STRING, p2 STRING) RETURNS BOOLEAN
     IF length(p1)==0 AND length(p2)==0 THEN -- No password at all
        RETURN TRUE
     END IF
@@ -160,31 +166,29 @@ PUBLIC FUNCTION pswd_match(p1,p2)
     END IF
 END FUNCTION
 
-FUNCTION users_mod(usrid,uname,ustat)
-    DEFINE usrid t_user_id,
-           uname t_user_name,
-           ustat t_user_status
+FUNCTION users_mod(
+    usrid t_user_id,
+    uname t_user_name,
+    ustat t_user_status
+) RETURNS ()
     UPDATE users SET
            user_name = uname,
            user_status = ustat
        WHERE user_id=usrid
 END FUNCTION
 
-FUNCTION users_clear_auth(usrid)
-    DEFINE usrid t_user_id
+FUNCTION users_clear_auth(usrid t_user_id) RETURNS ()
     UPDATE users SET
            user_auth = NULL
        WHERE user_id=usrid
 END FUNCTION
 
-FUNCTION users_del(usrid)
-    DEFINE usrid t_user_id
+FUNCTION users_del(usrid t_user_id) RETURNS ()
     DELETE FROM datafilter WHERE user_id = usrid
     DELETE FROM users WHERE user_id = usrid
 END FUNCTION
 
-FUNCTION users_reset_mtimes(usrid)
-    DEFINE usrid t_user_id
+FUNCTION users_reset_mtimes(usrid t_user_id) RETURNS ()
     DEFINE mtime DATETIME YEAR TO FRACTION(3)
     LET mtime = base_datetime
     UPDATE datafilter
@@ -193,9 +197,10 @@ FUNCTION users_reset_mtimes(usrid)
      WHERE user_id = usrid
 END FUNCTION
 
-FUNCTION users_check(usrid,uauth)
-    DEFINE usrid t_user_id,
-           uauth t_user_auth -- Encrypted
+FUNCTION users_check(
+    usrid t_user_id,
+    uauth t_user_auth -- Encrypted
+) RETURNS STRING
     DEFINE uname t_user_name,
            curr_auth t_user_auth, -- Encrypted
            ustat t_user_status
@@ -215,8 +220,8 @@ FUNCTION users_check(usrid,uauth)
     END CASE
 END FUNCTION
 
-PUBLIC FUNCTION user_auth_encrypt(uauth)
-    DEFINE uauth STRING -- Clear
+-- uauth is in clear text
+PUBLIC FUNCTION user_auth_encrypt(uauth STRING) RETURNS STRING
     DEFINE result STRING,
            dgst security.Digest
     IF length(uauth)==0 THEN
@@ -233,10 +238,11 @@ PUBLIC FUNCTION user_auth_encrypt(uauth)
     RETURN result
 END FUNCTION
 
-FUNCTION users_change_auth(usrid,old,new)
-    DEFINE usrid t_user_id,
-           old t_user_auth, -- Encrypted
-           new t_user_auth  -- Encrypted
+FUNCTION users_change_auth(
+    usrid t_user_id,
+    old t_user_auth, -- Encrypted
+    new t_user_auth  -- Encrypted
+) RETURNS STRING
     DEFINE tmp t_user_auth  -- Encrupted
     SELECT user_auth INTO tmp FROM users WHERE user_id=usrid
     IF sqlca.sqlcode==NOTFOUND THEN
@@ -253,27 +259,26 @@ FUNCTION users_change_auth(usrid,old,new)
     RETURN "success"
 END FUNCTION
 
-
 -- Sequences
 
-FUNCTION sequence_create(tabname,startnum)
-  DEFINE tabname STRING, startnum INTEGER
+FUNCTION sequence_create(
+  tabname STRING,
+  startnum INTEGER
+) RETURNS INTEGER
   WHENEVER ERROR CONTINUE
   EXECUTE IMMEDIATE "CREATE SEQUENCE "||tabname||"_seq START "||startnum
   WHENEVER ERROR STOP
   RETURN sqlca.sqlcode
 END FUNCTION
 
-FUNCTION sequence_drop(tabname)
-  DEFINE tabname STRING
+FUNCTION sequence_drop(tabname STRING) RETURNS INTEGER
   WHENEVER ERROR CONTINUE
   EXECUTE IMMEDIATE "DROP SEQUENCE "||tabname||"_seq"
   WHENEVER ERROR STOP
   RETURN sqlca.sqlcode
 END FUNCTION
 
-FUNCTION sequence_next(tabname)
-  DEFINE tabname STRING
+FUNCTION sequence_next(tabname STRING) RETURNS BIGINT
   DEFINE sqlstmt STRING
   DEFINE newseq BIGINT
   CASE fgl_db_driver_type()
@@ -293,7 +298,7 @@ FUNCTION sequence_next(tabname)
   RETURN newseq
 END FUNCTION
 
-FUNCTION unique_row_condition()
+FUNCTION unique_row_condition() RETURNS STRING
     CASE fgl_db_driver_type()
         WHEN "ifx" RETURN " FROM systables WHERE tabid=1"
         WHEN "db2" RETURN " FROM sysibm.systables WHERE name='SYSTABLES'"
@@ -303,8 +308,10 @@ FUNCTION unique_row_condition()
     END CASE
 END FUNCTION
 
-FUNCTION sequence_mobile_new(tabname,colname)
-    DEFINE tabname, colname STRING
+FUNCTION sequence_mobile_new(
+    tabname STRING,
+    colname STRING
+) RETURNS INTEGER
     DEFINE newseq INTEGER
     TRY
        PREPARE seq_mob_new FROM "SELECT MIN("||colname||")-1 FROM "||tabname
@@ -323,7 +330,7 @@ END FUNCTION
 
 -- Data filters
 
-FUNCTION datafilter_table()
+FUNCTION datafilter_table() RETURNS ()
     WHENEVER ERROR CONTINUE
     DROP TABLE datafilter
     WHENEVER ERROR STOP
@@ -338,9 +345,10 @@ FUNCTION datafilter_table()
     )
 END FUNCTION
 
-FUNCTION datafilter_load(uid, arr)
-    DEFINE uid t_user_id,
-           arr DYNAMIC ARRAY OF t_datafilter
+FUNCTION datafilter_load(
+    uid t_user_id,
+    arr DYNAMIC ARRAY OF t_datafilter
+) RETURNS ()
     DEFINE i INTEGER
     CALL arr.clear()
     DECLARE c_tabinfo CURSOR FOR
@@ -360,27 +368,29 @@ FUNCTION datafilter_load(uid, arr)
     FREE c_tabinfo
 END FUNCTION
 
-
-FUNCTION datafilter_define(uid, tn, wp)
-    DEFINE uid t_user_id,
-           tn t_table_name,
-           wp t_where_part
+FUNCTION datafilter_define(
+    uid t_user_id,
+    tn t_table_name,
+    wp t_where_part
+) RETURNS ()
     DEFINE mtime DATETIME YEAR TO FRACTION(3)
     LET mtime = base_datetime
     INSERT INTO datafilter VALUES ( uid, tn, mtime, NULL, wp )
 END FUNCTION
 
-FUNCTION datafilter_remove(uid, tn)
-    DEFINE uid t_user_id,
-           tn t_table_name
+FUNCTION datafilter_remove(
+    uid t_user_id,
+    tn t_table_name
+) RETURNS ()
     DELETE FROM datafilter
      WHERE user_id = uid AND table_name = tn
 END FUNCTION
 
-FUNCTION datafilter_set_where_part(uid, tn, wp)
-    DEFINE uid t_user_id,
-           tn t_table_name,
-           wp t_where_part
+FUNCTION datafilter_set_where_part(
+    uid t_user_id,
+    tn t_table_name,
+    wp t_where_part
+) RETURNS ()
     DEFINE mtime DATETIME YEAR TO FRACTION(3)
     LET mtime = base_datetime
     UPDATE datafilter SET
@@ -390,10 +400,11 @@ FUNCTION datafilter_set_where_part(uid, tn, wp)
      WHERE user_id = uid AND table_name = tn
 END FUNCTION
 
-FUNCTION datafilter_get_last_mtime(uid, tn, first_sync)
-    DEFINE uid t_user_id,
-           tn t_table_name,
-           first_sync BOOLEAN
+FUNCTION datafilter_get_last_mtime(
+    uid t_user_id,
+    tn t_table_name,
+    first_sync BOOLEAN
+) RETURNS DATETIME YEAR TO FRACTION(3)
     DEFINE last_user_mtime DATETIME YEAR TO FRACTION(3)
     IF first_sync THEN
        LET last_user_mtime = base_datetime
@@ -408,8 +419,10 @@ FUNCTION datafilter_get_last_mtime(uid, tn, first_sync)
     RETURN last_user_mtime
 END FUNCTION
 
-FUNCTION datafilter_get_filter(uid, tn)
-    DEFINE uid t_user_id, tn t_table_name
+FUNCTION datafilter_get_filter(
+    uid t_user_id,
+    tn t_table_name
+) RETURNS t_where_part
     DEFINE wp t_where_part
     SELECT where_part INTO wp
       FROM datafilter
@@ -420,19 +433,21 @@ FUNCTION datafilter_get_filter(uid, tn)
     RETURN wp
 END FUNCTION
 
-FUNCTION datafilter_register_mtime(uid, tn, mtime)
-    DEFINE uid t_user_id,
-           tn t_table_name,
-           mtime DATETIME YEAR TO FRACTION(3)
+FUNCTION datafilter_register_mtime(
+    uid t_user_id,
+    tn t_table_name,
+    mtime DATETIME YEAR TO FRACTION(3)
+) RETURNS INTEGER
     UPDATE datafilter
        SET temp_mtime = mtime
      WHERE user_id = uid AND table_name = tn
     RETURN IIF(sqlca.sqlerrd[3]==1,0,-1)
 END FUNCTION
 
-FUNCTION datafilter_commit_mtime(uid, tn)
-    DEFINE uid t_user_id,
-           tn t_table_name
+FUNCTION datafilter_commit_mtime(
+    uid t_user_id,
+    tn t_table_name
+) RETURNS INTEGER
     DEFINE mtime DATETIME YEAR TO FRACTION(3)
     SELECT temp_mtime INTO mtime
       FROM datafilter
@@ -451,13 +466,17 @@ END FUNCTION
 
 -- DB Sync log
 
-FUNCTION dbsynclog_clear()
+FUNCTION dbsynclog_clear() RETURNS ()
     CALL dbsynclog.clear()
 END FUNCTION
 
-FUNCTION dbsynclog_record(failure,tabname,ident,comment)
+FUNCTION dbsynclog_record(
+    failure VARCHAR(50),
+    tabname VARCHAR(50),
+    ident VARCHAR(50),
+    comment VARCHAR(200)
+) RETURNS ()
     CONSTANT fs='{"failure":"%1", "table":"%2", "ident":"%3"}'
-    DEFINE failure, tabname, ident VARCHAR(50), comment VARCHAR(200)
     DEFINE x INTEGER
     LET x = dbsynclog.getLength() + 1
     LET dbsynclog[x].log_when = CURRENT
@@ -465,11 +484,11 @@ FUNCTION dbsynclog_record(failure,tabname,ident,comment)
     LET dbsynclog[x].log_comment = comment
 END FUNCTION
 
-FUNCTION dbsynclog_count()
+FUNCTION dbsynclog_count() RETURNS INTEGER
     RETURN dbsynclog.getLength()
 END FUNCTION
 
-FUNCTION dbsynclog_show()
+FUNCTION dbsynclog_show() RETURNS ()
     DEFINE arr DYNAMIC ARRAY OF RECORD
                num INTEGER,
                object VARCHAR(100),
@@ -505,20 +524,18 @@ END FUNCTION
 
 -- Debug
 
-FUNCTION my_startlog(fn)
-    DEFINE fn STRING
+FUNCTION my_startlog(fn STRING) RETURNS ()
     CALL startlog( os.Path.join(os.Path.pwd(),fn) )
 END FUNCTION
 
-FUNCTION my_errorlog(txt)
-    DEFINE txt STRING
+FUNCTION my_errorlog(txt STRING) RETURNS ()
     CALL errorlog(txt)
 END FUNCTION
 
 -- Files
 
-FUNCTION create_empty_file(fn)
-    DEFINE fn STRING, c base.Channel
+FUNCTION create_empty_file(fn STRING) RETURNS ()
+    DEFINE c base.Channel
     LET c = base.Channel.create()
     CALL c.openFile(fn, "w")
     CALL c.close()
@@ -526,8 +543,9 @@ END FUNCTION
 
 -- Data
 
-FUNCTION intarr_to_list(arr)
-   DEFINE arr DYNAMIC ARRAY OF INTEGER
+FUNCTION intarr_to_list(
+   arr DYNAMIC ARRAY OF INTEGER
+) RETURNS STRING
    DEFINE i INTEGER, res STRING
    FOR i=1 TO arr.getLength()
        IF i=1 THEN
@@ -539,9 +557,10 @@ FUNCTION intarr_to_list(arr)
    RETURN res
 END FUNCTION
 
-FUNCTION intarr_lookup(arr,val)
-    DEFINE arr DYNAMIC ARRAY OF INTEGER,
-           val INTEGER
+FUNCTION intarr_lookup(
+    arr DYNAMIC ARRAY OF INTEGER,
+    val INTEGER
+) RETURNS INTEGER
     DEFINE i INTEGER
     FOR i=1 TO arr.getLength()
         IF arr[i] == val THEN RETURN i END IF
@@ -551,8 +570,7 @@ END FUNCTION
 
 -- Dialogs
 
-FUNCTION mbox_ync(title,msg)
-    DEFINE title, msg STRING
+FUNCTION mbox_ync(title STRING, msg STRING) RETURNS SMALLINT
     DEFINE res SMALLINT
     MENU title ATTRIBUTES(STYLE="dialog",COMMENT=msg)
         ON ACTION yes     LET res = 1
@@ -562,8 +580,7 @@ FUNCTION mbox_ync(title,msg)
     RETURN res
 END FUNCTION
 
-FUNCTION mbox_yn(title,msg)
-    DEFINE title, msg STRING
+FUNCTION mbox_yn(title STRING, msg STRING) RETURNS BOOLEAN
     DEFINE res BOOLEAN
     MENU title ATTRIBUTES(STYLE="dialog",COMMENT=msg)
         ON ACTION yes LET res = TRUE
@@ -572,7 +589,7 @@ FUNCTION mbox_yn(title,msg)
     RETURN res
 END FUNCTION
 
-FUNCTION mbox_ok(title,msg)
+FUNCTION mbox_ok(title,msg) RETURNS ()
     DEFINE title, msg STRING
     MENU title ATTRIBUTES(STYLE="dialog",COMMENT=msg)
         ON ACTION accept
@@ -582,10 +599,11 @@ END FUNCTION
 
 -- BYTE file names
 
-FUNCTION bfn_get(fs, id, ts)
-    DEFINE fs STRING,
-           id STRING,
-           ts DATETIME YEAR TO FRACTION(3)
+FUNCTION bfn_get(
+    fs STRING,
+    id STRING,
+    ts DATETIME YEAR TO FRACTION(3)
+) RETURNS STRING
     DEFINE fn, s STRING,
            x INTEGER
     IF ts IS NULL THEN
@@ -603,10 +621,9 @@ FUNCTION bfn_get(fs, id, ts)
     RETURN fn
 END FUNCTION
 
-FUNCTION bfn_cleanup()
+FUNCTION bfn_cleanup() RETURNS ()
     DEFINE x,s INTEGER
     FOR x=1 TO bfn_list.getLength()
         LET s = os.Path.delete( bfn_list[x].name )
     END FOR
 END FUNCTION
-

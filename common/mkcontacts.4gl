@@ -1,7 +1,6 @@
 IMPORT FGL libutil
 
-FUNCTION create_database(tp,ws)
-    DEFINE tp VARCHAR(20), ws BOOLEAN
+FUNCTION create_database(tp VARCHAR(20), ws BOOLEAN) RETURNS ()
     DEFINE tmp VARCHAR(200), s INTEGER
 
     WHENEVER ERROR CONTINUE
@@ -23,7 +22,7 @@ FUNCTION create_database(tp,ws)
 
        CALL libutil.users_server_table()
        IF ws THEN
-          CALL libutil.users_add(v_undef, NULL, v_undef_text, 1) -- Foreign key to contacts
+          CALL libutil.users_add(libutil.v_undef, NULL, libutil.v_undef_text, 1) -- Foreign key to contacts
           CALL libutil.users_add("max",   NULL, "Max Brand", 1)
           CALL libutil.users_add("mike",  NULL, "Mike Sharp", 1)
           CALL libutil.users_add("ted",   NULL, "Ted Philips", 1)
@@ -55,7 +54,7 @@ FUNCTION create_database(tp,ws)
          PRIMARY KEY(city_num),
          UNIQUE (city_name, city_country)
     )
-    INSERT INTO city VALUES ( 1000, v_undef, v_undef_text )
+    INSERT INTO city VALUES ( 1000, libutil.v_undef, libutil.v_undef_text )
     INSERT INTO city VALUES ( 1001, "Paris", "France" )
     INSERT INTO city VALUES ( 1002, "London", "U.K." )
     INSERT INTO city VALUES ( 1003, "Berlin", "Germany" )
@@ -97,7 +96,7 @@ FUNCTION create_database(tp,ws)
               NULL, NULL, "max", NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1002, "admin", "2010-01-01 00:00:00.000", "S",
               "Carl Lansfield", "Y", "5 Rue Voltaire",  1008, "03-1111-2345",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1003, "admin", "2010-01-01 00:00:00.000", "S",
               "Mike Sharp",     "Y", "Rue du Canal",          1009, "03-9999-1111",
               NULL, NULL, "mike", NULL, NULL, NULL, NULL )
@@ -106,22 +105,22 @@ FUNCTION create_database(tp,ws)
               NULL, NULL, "ted", NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1005, "admin", "2010-01-01 00:00:00.000", "S",
               "Clark Brinship", "Y", "2 Rue Rouge",           1007, "03-9999-2345",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1006, "admin", "2010-01-01 00:00:00.000", "S",
               "Mike Clamberg",  "Y", "3 Rue des Artisans",    1008, "03-7645-9999",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1007, "admin", "2010-01-01 00:00:00.000", "S",
               "Ted Fiztman",    "Y", "123 Ocean Av",          1002, "03-7645-9999",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1008, "admin", "2010-01-01 00:00:00.000", "S",
               "Patrick Kenzal", "Y", "8722 Main street",      1004, "03-9999-2345",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1009, "admin", "2010-01-01 00:00:00.000", "S",
               "Steve Baumer",   "Y", "231 Cardigon Bld",      1002, "03-9999-2345",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        INSERT INTO contact VALUES ( 1010, "admin", "2010-01-01 00:00:00.000", "S",
               "Philip Desmond", "Y", "12 Kirt street",        1004, "03-7645-9999",
-              NULL, NULL, v_undef, NULL, NULL, NULL, NULL )
+              NULL, NULL, libutil.v_undef, NULL, NULL, NULL, NULL )
        LET s = libutil.sequence_create("contact",2000)
     END IF
 

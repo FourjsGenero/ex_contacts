@@ -1,6 +1,6 @@
 IMPORT FGL libutil
 
-FUNCTION enter_password()
+FUNCTION enter_password() RETURNS (INTEGER,STRING,STRING)
     DEFINE rec RECORD
                    old_pwd STRING,
                    new_pwd STRING,

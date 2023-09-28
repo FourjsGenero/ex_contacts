@@ -5,7 +5,7 @@ IMPORT FGL libutil
 SCHEMA contacts
 
 PRIVATE DEFINE
-   current_user t_user_id,
+   current_user libutil.t_user_id,
    current_contact INTEGER,
    when_cmb ui.ComboBox,
    curr_row INTEGER,
@@ -20,8 +20,7 @@ PRIVATE DEFINE
           contnote_text LIKE contnote.contnote_text
        END RECORD
 
-PRIVATE FUNCTION load_notes(contact_num)
-    DEFINE contact_num INTEGER
+PRIVATE FUNCTION load_notes(contact_num INTEGER) RETURNS ()
     DEFINE x INTEGER
     DECLARE c_contnote CURSOR FOR
             SELECT * FROM contnote
@@ -41,7 +40,7 @@ PRIVATE FUNCTION load_notes(contact_num)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION init_when_combobox()
+PRIVATE FUNCTION init_when_combobox() RETURNS ()
     DEFINE x INTEGER
     LET when_cmb = ui.ComboBox.forName("contnote_when")
     FOR x=1 TO notelist.getLength()
@@ -49,7 +48,7 @@ PRIVATE FUNCTION init_when_combobox()
     END FOR
 END FUNCTION
 
-PRIVATE FUNCTION select_new_current()
+PRIVATE FUNCTION select_new_current() RETURNS ()
     DEFINE x INTEGER
     FOR x=1 TO notelist.getLength()
         IF notelist[x].contnote_when == rec.contnote_when THEN
@@ -60,20 +59,21 @@ PRIVATE FUNCTION select_new_current()
     CALL select_note(x)
 END FUNCTION
 
-PRIVATE FUNCTION select_note(x)
-    DEFINE x INTEGER
+PRIVATE FUNCTION select_note(x INTEGER)
     LET curr_row = x
     CALL notelist_to_rec()
     LET is_new = FALSE
 END FUNCTION
 
-PRIVATE FUNCTION remove_current_element()
+PRIVATE FUNCTION remove_current_element() RETURNS ()
     CALL when_cmb.removeItem(notelist[curr_row].contnote_when)
     CALL notelist.deleteElement(curr_row)
 END FUNCTION
 
-PRIVATE FUNCTION set_mrec_change(row, mstat)
-    DEFINE row INTEGER, mstat CHAR(2)
+PRIVATE FUNCTION set_mrec_change(
+    row INTEGER,
+    mstat CHAR(2)
+) RETURNS ()
     -- We set the mtime because it's not null in the DB.
     -- This value will be reset by server at sync time.
     LET notelist[row].contnote_rec_muser = current_user
@@ -81,7 +81,7 @@ PRIVATE FUNCTION set_mrec_change(row, mstat)
     LET notelist[row].contnote_rec_mstat = mstat
 END FUNCTION
 
-PRIVATE FUNCTION save_current_note()
+PRIVATE FUNCTION save_current_note() RETURNS ()
     LET rec.contnote_text = rec.contnote_text CLIPPED
     IF ( rec.contnote_text == notelist[curr_row].contnote_text )
     OR ( rec.contnote_text IS NULL AND notelist[curr_row].contnote_text IS NULL )
@@ -130,7 +130,7 @@ PRIVATE FUNCTION save_current_note()
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION notelist_to_rec()
+PRIVATE FUNCTION notelist_to_rec() RETURNS ()
     LET rec.contnote_num = notelist[curr_row].contnote_num
     LET rec.contnote_rec_muser = notelist[curr_row].contnote_rec_muser
     LET rec.contnote_rec_mtime = notelist[curr_row].contnote_rec_mtime
@@ -139,12 +139,12 @@ PRIVATE FUNCTION notelist_to_rec()
     LET rec.contnote_text = notelist[curr_row].contnote_text
 END FUNCTION
 
-PRIVATE FUNCTION rec_to_notelist()
+PRIVATE FUNCTION rec_to_notelist() RETURNS ()
     LET notelist[curr_row].contnote_when = rec.contnote_when
     LET notelist[curr_row].contnote_text = rec.contnote_text
 END FUNCTION
 
-PRIVATE FUNCTION append_new_note()
+PRIVATE FUNCTION append_new_note() RETURNS ()
     LET curr_row = notelist.getLength()+1
     LET notelist[curr_row].contnote_num = libutil.sequence_mobile_new("contnote","contnote_num")
     LET notelist[curr_row].contnote_contact = current_contact
@@ -158,7 +158,7 @@ PRIVATE FUNCTION append_new_note()
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION delete_current_note()
+PRIVATE FUNCTION delete_current_note() RETURNS ()
     IF is_new THEN
        LET is_new = FALSE
     ELSE
@@ -177,8 +177,7 @@ PRIVATE FUNCTION delete_current_note()
     CALL remove_current_element()
 END FUNCTION
 
-PRIVATE FUNCTION browse_notes(row)
-    DEFINE row INT
+PRIVATE FUNCTION browse_notes(row INTEGER) RETURNS ()
     DEFINE arr DYNAMIC ARRAY OF RECORD
                    key INTEGER,
                    text STRING,
@@ -203,8 +202,10 @@ PRIVATE FUNCTION browse_notes(row)
     CLOSE WINDOW w_browse_notes
 END FUNCTION
 
-FUNCTION edit_notes(user_id, contact_num)
-    DEFINE user_id t_user_id, contact_num INTEGER
+FUNCTION edit_notes(
+    user_id libutil.t_user_id,
+    contact_num INTEGER
+) RETURNS ()
     DEFINE tmp STRING
     LET current_user = user_id
     LET current_contact = contact_num

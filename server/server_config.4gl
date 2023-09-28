@@ -21,7 +21,7 @@ MAIN
        EXIT PROGRAM 1
     END IF
 
-    LET s = do_connect(dbname, dbsrce, dbdriv, uname, upswd)
+    LET s = libutil.do_connect(dbname, dbsrce, dbdriv, uname, upswd)
     IF s !=0 THEN
        DISPLAY "ERROR:", s, " ", SQLERRMESSAGE
        EXIT PROGRAM 1
@@ -124,8 +124,10 @@ MAIN
 
 END MAIN
 
-FUNCTION check_sql(tabname, where_part)
-    DEFINE tabname, where_part STRING
+FUNCTION check_sql(
+    tabname STRING,
+    where_part STRING
+) RETURNS BOOLEAN
     DEFINE sql STRING, cnt INTEGER
     IF length(where_part)==0 THEN RETURN TRUE END IF
     LET sql = SFMT("SELECT COUNT(*) FROM %1 WHERE %2", tabname, where_part)
@@ -140,8 +142,7 @@ FUNCTION check_sql(tabname, where_part)
     RETURN TRUE
 END FUNCTION
 
-FUNCTION edit_user(new)
-    DEFINE new BOOLEAN
+FUNCTION edit_user(new BOOLEAN) RETURNS BOOLEAN
     IF new THEN
        INITIALIZE r_user.* TO NULL
        LET r_user.user_has_pswd = FALSE
@@ -177,13 +178,10 @@ FUNCTION edit_user(new)
     RETURN TRUE
 END FUNCTION
 
-PRIVATE FUNCTION mbox_ok(msg)
-    DEFINE msg STRING
+PRIVATE FUNCTION mbox_ok(msg STRING) RETURNS ()
     CALL libutil.mbox_ok("Contacts Server",msg)
 END FUNCTION
 
-PRIVATE FUNCTION mbox_yn(msg)
-    DEFINE msg STRING
+PRIVATE FUNCTION mbox_yn(msg STRING) RETURNS BOOLEAN
     RETURN libutil.mbox_yn("Contacts Server",msg)
 END FUNCTION
-

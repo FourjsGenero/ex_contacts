@@ -18,7 +18,7 @@ MAIN
     DEFINE dbname, dbsrce, dbdriv, apik, uname, upswd STRING,
            port, i, s INTEGER, msg STRING
 
-    CALL check_utf8() RETURNING s, msg
+    CALL libutil.check_utf8() RETURNING s, msg
     IF s != 0 THEN
        CALL show_err(msg)
        EXIT PROGRAM 1
@@ -51,14 +51,14 @@ MAIN
     CALL show_verb("Starting dbsync server:")
     CALL show_verb("  Listening on port  : "|| NVL(port,"null"))
     CALL show_verb("  Database           : "||dbname)
-    LET s = do_connect(dbname, dbsrce, dbdriv, uname, upswd)
+    LET s = libutil.do_connect(dbname, dbsrce, dbdriv, uname, upswd)
     IF s !=0 THEN
        CALL show_err(SFMT("%1 %2",s,SQLERRMESSAGE))
        EXIT PROGRAM 1
     END IF
     CALL show_verb(SFMT("Database driver: %1", fgl_db_driver_type()))
 
-    CALL dbsync_contacts_set_google_api_key( apik )
+    CALL dbsync_contact.dbsync_contacts_set_google_api_key( apik )
 
     CALL start_http(port)
 
@@ -66,20 +66,18 @@ MAIN
 
 END MAIN
 
-FUNCTION show_verb(msg)
-    DEFINE msg STRING
+FUNCTION show_verb(msg STRING) RETURNS ()
     IF verbose THEN
        DISPLAY msg
     END IF
 END FUNCTION
 
-FUNCTION show_err(msg)
+FUNCTION show_err(msg) RETURNS ()
     DEFINE msg STRING
     DISPLAY "ERROR:", msg
 END FUNCTION
 
-FUNCTION start_http(port)
-    DEFINE port INTEGER
+FUNCTION start_http(port INTEGER) RETURNS ()
     DEFINE req com.HttpServiceRequest,
            uri STRING
 
@@ -121,8 +119,10 @@ FUNCTION start_http(port)
     END WHILE
 END FUNCTION
 
-FUNCTION process_request(uri, req)
-  DEFINE uri STRING, req com.HttpServiceRequest
+FUNCTION process_request(
+  uri STRING,
+  req com.HttpServiceRequest
+) RETURNS INTEGER
   DEFINE method, header, format, cmd, res STRING,
          selist, selist_res dbsync_contact.t_selist,
          doc xml.DomDocument,
@@ -139,7 +139,7 @@ FUNCTION process_request(uri, req)
 
   # Status service
   IF method=="GET" AND uri.getIndexOf(SERVICE_STATUS,1)>1 THEN
-     CALL req.sendTextResponse(200,NULL,dbsync_generate_status_text())
+     CALL req.sendTextResponse(200,NULL,dbsync_contact.dbsync_generate_status_text())
      RETURN 0
   END IF
 
@@ -195,11 +195,11 @@ FUNCTION process_request(uri, req)
      END TRY
     END IF
 
-    CALL dbsync_contacts_sync_server(selist.*) RETURNING selist_res.*
+    CALL dbsync_contact.dbsync_contacts_sync_server(selist, selist_res)
 
   ELSE -- GET
 
-    CALL dbsync_contacts_get_request(uri) RETURNING selist_res.*
+    CALL dbsync_contact.dbsync_contacts_get_request(uri, selist_res)
 
   END IF
 

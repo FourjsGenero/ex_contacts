@@ -23,12 +23,12 @@ MAIN
        EXIT PROGRAM 1
     END IF
 
-    LET s = do_connect(dbname, dbsrce, dbdriv, uname, upswd)
+    LET s = libutil.do_connect(dbname, dbsrce, dbdriv, uname, upswd)
     IF s !=0 THEN
        DISPLAY "ERROR:", s, " ", SQLERRMESSAGE
        EXIT PROGRAM 1
     END IF
 
-    CALL create_database("server",sample)
+    CALL mkcontacts.create_database("server",sample)
 
 END MAIN

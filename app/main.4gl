@@ -87,14 +87,14 @@ MAIN
     CALL terminate_application()
 END MAIN
 
-PRIVATE FUNCTION initialize_application()
+PRIVATE FUNCTION initialize_application() RETURNS ()
     OPTIONS INPUT WRAP, FIELD ORDER FORM
     CALL add_presentation_styles()
-    CALL my_startlog("contacts.log")
+    CALL libutil.my_startlog("contacts.log")
     CALL ui.Interface.loadActionDefaults("contacts")
 END FUNCTION
 
-PRIVATE FUNCTION open_database()
+PRIVATE FUNCTION open_database() RETURNS ()
     DEFINE basedir, dbfile, connstr VARCHAR(256)
     -- source is defined as module variable, so we can delete it for tests
     LET dbfile = "contacts.dbs"
@@ -104,7 +104,7 @@ PRIVATE FUNCTION open_database()
     ELSE -- In development mode on server
         LET basedir = fgl_getenv("USERDBDIR")
         IF basedir IS NULL THEN
-           LET param_defaults.user_id = "max"
+           LET params.param_defaults.user_id = "max"
            DISPLAY "WARNING: USERDBDIR not set, using current dir for dbfile"
            LET source = dbfile
         ELSE
@@ -115,18 +115,17 @@ PRIVATE FUNCTION open_database()
     IF NOT base.Application.isMobile() THEN
        LET connstr = connstr, ",driver='dbmsqt'"
     END IF
-    CALL my_errorlog(SFMT("open_database: %1", connstr))
+    CALL libutil.my_errorlog(SFMT("open_database: %1", connstr))
     IF os.Path.exists(source) THEN
         CONNECT TO connstr AS "c1"
     ELSE
-        CALL create_empty_file(source)
+        CALL libutil.create_empty_file(source)
         CONNECT TO connstr AS "c1"
         CALL mkcontacts.create_database("mobile",FALSE)
     END IF
 END FUNCTION
 
-FUNCTION escape_backslashes(str)
-    DEFINE str STRING
+FUNCTION escape_backslashes(str STRING) RETURNS STRING
     DEFINE buf base.StringBuffer
     LET buf = base.StringBuffer.create()
     CALL buf.append(str)
@@ -134,13 +133,13 @@ FUNCTION escape_backslashes(str)
     RETURN buf.toString()
 END FUNCTION
 
-PRIVATE FUNCTION close_database()
+PRIVATE FUNCTION close_database() RETURNS ()
     DISCONNECT "c1"
 END FUNCTION
 
-PRIVATE FUNCTION initialize_parameters()
+PRIVATE FUNCTION initialize_parameters() RETURNS ()
     DEFINE r BOOLEAN
-    CASE load_settings()
+    CASE params.load_settings()
        WHEN -1 -- First time, but param input was canceled
          EXIT PROGRAM
        WHEN 0 -- First time
@@ -151,22 +150,22 @@ PRIVATE FUNCTION initialize_parameters()
     END CASE
 END FUNCTION
 
-PRIVATE FUNCTION open_main_form()
+PRIVATE FUNCTION open_main_form() RETURNS ()
     OPEN FORM f1 FROM "contlist"
     DISPLAY FORM f1
     CALL set_title()
 END FUNCTION
 
-PRIVATE FUNCTION set_title()
+PRIVATE FUNCTION set_title() RETURNS ()
     DEFINE w ui.Window,
            title STRING
-    LET title = SFMT("%1 / %2", %"contacts.title", parameters.user_id )
+    LET title = SFMT("%1 / %2", %"contacts.title", params.parameters.user_id )
     LET w = ui.Window.getCurrent()
     CALL w.setText( title )
     CALL ui.Interface.setText( title )
 END FUNCTION
 
-PRIVATE FUNCTION contact_list()
+PRIVATE FUNCTION contact_list() RETURNS ()
     DEFINE curr_row INTEGER,
            last_idle, curr_idle DATETIME YEAR TO SECOND,
            ts_diff, ts_max INTERVAL SECOND(9) TO SECOND,
@@ -186,8 +185,8 @@ PRIVATE FUNCTION contact_list()
            CALL update_geoloc_for_user(FALSE)
            LET curr_idle = CURRENT YEAR TO SECOND
            LET ts_diff = curr_idle - last_idle
-           IF parameters.auto_sync > 0 THEN
-              LET tmp = parameters.auto_sync
+           IF params.parameters.auto_sync > 0 THEN
+              LET tmp = params.parameters.auto_sync
               LET ts_max = tmp
               IF ts_diff >= ts_max THEN
                  MESSAGE %"contacts.mess.sync"
@@ -205,7 +204,7 @@ PRIVATE FUNCTION contact_list()
         ON UPDATE
            -- In case if we get BEFORE ROW + ON UPDATE at the same time, we must check
            -- again because the action may not be disabled
-           IF NOT dbsync_marked_for_garbage(contlist[arr_curr()].contact_rec_mstat) THEN
+           IF NOT dbsync_contact.dbsync_marked_for_garbage(contlist[arr_curr()].contact_rec_mstat) THEN
               CALL edit_contact(arr_curr(), FALSE)
            ELSE
               ERROR %"contacts.error.cantupd1"
@@ -214,7 +213,7 @@ PRIVATE FUNCTION contact_list()
         ON DELETE
            -- In case if we get BEFORE ROW + ON DELETE at the same time, we must check
            -- again because the action may not be disabled
-           IF NOT dbsync_marked_for_deletion(contlist[arr_curr()].contact_rec_mstat) THEN
+           IF NOT dbsync_contact.dbsync_marked_for_deletion(contlist[arr_curr()].contact_rec_mstat) THEN
               CALL remove_contact(TRUE,arr_curr())
            ELSE
               ERROR %"contacts.error.cantdel1"
@@ -234,28 +233,25 @@ PRIVATE FUNCTION contact_list()
 
 END FUNCTION
 
-PRIVATE FUNCTION terminate_application()
+PRIVATE FUNCTION terminate_application() RETURNS ()
     DEFINE r BOOLEAN
     IF mbox_yn(%"contacts.mess.syncnow") THEN
        LET r = synchronize(FALSE,FALSE)
     END IF
-    CALL save_settings()
+    CALL params.save_settings()
     CALL libutil.bfn_cleanup()
-   EXIT PROGRAM 0
+    EXIT PROGRAM 0
 END FUNCTION
 
-PRIVATE FUNCTION mbox_ok(msg)
-    DEFINE msg STRING
+PRIVATE FUNCTION mbox_ok(msg STRING) RETURNS ()
     CALL libutil.mbox_ok(%"contacts.title",msg)
 END FUNCTION
 
-PRIVATE FUNCTION mbox_yn(msg)
-    DEFINE msg STRING
+PRIVATE FUNCTION mbox_yn(msg STRING) RETURNS BOOLEAN
     RETURN libutil.mbox_yn(%"contacts.title",msg)
 END FUNCTION
 
-PRIVATE FUNCTION contlist_options(d)
-    DEFINE d ui.Dialog
+PRIVATE FUNCTION contlist_options(d ui.Dialog) RETURNS ()
     DEFINE sync SMALLINT
     MENU "options1" ATTRIBUTES(STYLE="popup")
         ON ACTION geoloc ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.geoloc" )
@@ -267,14 +263,14 @@ PRIVATE FUNCTION contlist_options(d)
            LET sync = 1
            EXIT MENU
         ON ACTION settings ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.settings" )
-           IF edit_settings(FALSE) THEN
+           IF params.edit_settings(FALSE) THEN
               CALL set_title()
-              CALL save_settings()
+              CALL params.save_settings()
            END IF
         ON ACTION quit ATTRIBUTES( TEXT=%"common.action.quit" )
            CALL terminate_application()
         ON ACTION togglepha ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.togglepha" )
-           LET parameters.see_all = NOT parameters.see_all
+           LET params.parameters.see_all = NOT params.parameters.see_all
            CALL load_contacts()
            CALL d.setCurrentRow("sr",1)
         ON ACTION cleargarb ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.cleargarb" )
@@ -283,7 +279,7 @@ PRIVATE FUNCTION contlist_options(d)
            LET sync = 2
            EXIT MENU
         ON ACTION synclog ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.synclog" )
-           CALL dbsynclog_show()
+           CALL libutil.dbsynclog_show()
         ON ACTION stress ATTRIBUTES( TEXT=%"contacts.contlist_options_menu.stress" )
            MENU "Stress test" ATTRIBUTES(STYLE="dialog")
                COMMAND "More"  CALL stress_test(d)
@@ -299,14 +295,13 @@ PRIVATE FUNCTION contlist_options(d)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION clear_garbage(d)
-    DEFINE d ui.Dialog
+PRIVATE FUNCTION clear_garbage(d ui.Dialog) RETURNS ()
     CALL dbsync_contact.delete_garbage_contact()
     CALL load_contacts()
     CALL d.setCurrentRow("sr",1)
 END FUNCTION
 
-PRIVATE FUNCTION stress_clean()
+PRIVATE FUNCTION stress_clean() RETURNS ()
     DEFINE x INTEGER, r BOOLEAN
     FOR x = 1 TO contlist.getLength()
         IF contlist[x].contact_name LIKE "Upd:%"
@@ -317,17 +312,15 @@ PRIVATE FUNCTION stress_clean()
     LET r = synchronize(FALSE,FALSE)
 END FUNCTION
 
-PRIVATE FUNCTION set_curr_contact_minfo(pmt)
-    DEFINE pmt BOOLEAN
-    LET curr_contact.contact_rec_muser = parameters.user_id
+PRIVATE FUNCTION set_curr_contact_minfo(pmt BOOLEAN) RETURNS ()
+    LET curr_contact.contact_rec_muser = params.parameters.user_id
     LET curr_contact.contact_rec_mtime = util.Datetime.getCurrentAsUTC()
     IF pmt THEN
        LET curr_contact.contact_photo_mtime = curr_contact.contact_rec_mtime
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION stress_test(d)
-    DEFINE d ui.Dialog
+PRIVATE FUNCTION stress_test(d ui.Dialog) RETURNS ()
     DEFINE x, row INTEGER,
            r BOOLEAN,
            tmp_byte BYTE
@@ -343,7 +336,7 @@ PRIVATE FUNCTION stress_test(d)
         CALL set_curr_contact_minfo(TRUE)
         IF x MOD 10 != 0 THEN
           LET curr_contact.contact_rec_mstat = "U1"
-          LET curr_contact.contact_name = SFMT("Upd: (%1) %2", parameters.user_id, CURRENT HOUR TO FRACTION(5))
+          LET curr_contact.contact_name = SFMT("Upd: (%1) %2", params.parameters.user_id, CURRENT HOUR TO FRACTION(5))
 --DISPLAY "UPDATE: ", curr_contact.contact_num
           UPDATE contact SET
                  contact_rec_muser = curr_contact.contact_rec_muser,
@@ -364,9 +357,9 @@ PRIVATE FUNCTION stress_test(d)
         IF x MOD 3 == 1 THEN
           LET curr_contact.contact_rec_mstat = "N"
           LET curr_contact.contact_num = libutil.sequence_mobile_new("contact","contact_num")
-          LET curr_contact.contact_name = SFMT("New: (%1) %2", parameters.user_id, CURRENT HOUR TO FRACTION(5))
+          LET curr_contact.contact_name = SFMT("New: (%1) %2", params.parameters.user_id, CURRENT HOUR TO FRACTION(5))
           LET curr_contact.contact_valid = "N"
-          LET curr_contact.contact_user = v_undef
+          LET curr_contact.contact_user = libutil.v_undef
           LET curr_contact.contact_city = 1001 -- Paris
 --DISPLAY "INSERT: ", curr_contact.contact_num
           IF curr_contact.contact_photo_file != ANONYMOUS_IMAGE_FILE THEN
@@ -402,8 +395,7 @@ PRIVATE FUNCTION stress_test(d)
     END FOR
 END FUNCTION
 
-PRIVATE FUNCTION call_contact(row)
-    DEFINE row INTEGER
+PRIVATE FUNCTION call_contact(row INTEGER) RETURNS ()
     DEFINE num, res, cmt_m, cmt_h, cmt_w STRING
 
     LET cmt_m = "("||contlist[row].contact_num_m||")"
@@ -432,22 +424,24 @@ PRIVATE FUNCTION call_contact(row)
 
 END FUNCTION
 
-PRIVATE FUNCTION synchronize(first_sync, with_ui)
-    DEFINE first_sync, with_ui BOOLEAN
+PRIVATE FUNCTION synchronize(
+    first_sync BOOLEAN,
+    with_ui BOOLEAN
+) RETURNS BOOLEAN
     DEFINE s, c, t INTEGER, msg STRING
-    CALL dbsync_contacts_set_sync_url( params_cdb_url() )
-    CALL dbsync_contacts_set_sync_format( parameters.cdb_format )
-    CALL dbsync_sync_contacts_send( first_sync, parameters.user_id, parameters.user_auth )
+    CALL dbsync_contact.dbsync_contacts_set_sync_url( params.params_cdb_url() )
+    CALL dbsync_contact.dbsync_contacts_set_sync_format( params.parameters.cdb_format )
+    CALL dbsync_contact.dbsync_sync_contacts_send( first_sync, params.parameters.user_id, params.parameters.user_auth )
          RETURNING s, msg
     IF s!=0 AND with_ui IS NOT NULL THEN
        CALL mbox_ok(SFMT(%"contacts.mess.syncfail",s,msg))
        RETURN FALSE
     END IF
-    LET t = dbsync_get_download_count()
+    LET t = dbsync_contact.dbsync_get_download_count()
     EXECUTE IMMEDIATE "VACUUM"
     EXECUTE IMMEDIATE "PRAGMA foreign_key=ON"
     IF NOT with_ui OR t<=2 THEN
-       CALL dbsync_sync_contacts_download( first_sync, parameters.user_id, parameters.user_auth, -1 )
+       CALL dbsync_contact.dbsync_sync_contacts_download( first_sync, params.parameters.user_id, params.parameters.user_auth, -1 )
             RETURNING s, msg
        IF s<0 THEN
           CALL mbox_ok(SFMT(%"contacts.mess.syncfail",s,msg))
@@ -459,7 +453,7 @@ PRIVATE FUNCTION synchronize(first_sync, with_ui)
        LET c = 0
        LET int_flag = FALSE
        WHILE s==0 -- Stop when s==1
-          CALL dbsync_sync_contacts_download( first_sync, parameters.user_id, parameters.user_auth, 3 )
+          CALL dbsync_contact.dbsync_sync_contacts_download( first_sync, params.parameters.user_id, params.parameters.user_auth, 3 )
                RETURNING s, msg
           IF s<0 THEN
              CALL mbox_ok(SFMT(%"contacts.mess.syncfail",s,msg))
@@ -479,30 +473,28 @@ PRIVATE FUNCTION synchronize(first_sync, with_ui)
           MESSAGE SFMT(%"contacts.mess.downloaded",t,t) CALL ui.Interface.refresh()
        END IF
     END IF
-    CALL dbsync_send_return_receipt(parameters.user_id, parameters.user_auth)
+    CALL dbsync_contact.dbsync_send_return_receipt(params.parameters.user_id, params.parameters.user_auth)
          RETURNING s, msg
     IF s<0 THEN
        CALL mbox_ok(SFMT(%"contacts.mess.syncfail",s,msg))
        RETURN FALSE
     END IF
     CALL load_contacts()
-    LET parameters.last_sync = CURRENT
-    CALL save_settings()
+    LET params.parameters.last_sync = CURRENT
+    CALL params.save_settings()
     IF with_ui THEN
-       IF dbsynclog_count()>0 THEN
+       IF libutil.dbsynclog_count()>0 THEN
           IF mbox_yn(%"contacts.mess.syncprobs") THEN
-             CALL dbsynclog_show()
+             CALL libutil.dbsynclog_show()
           END IF
        END IF
     END IF
     RETURN TRUE
 END FUNCTION
 
-PRIVATE FUNCTION remove_contact(interactive, row)
-    DEFINE interactive BOOLEAN
-    DEFINE row INT
+PRIVATE FUNCTION remove_contact(interactive BOOLEAN, row INTEGER) RETURNS ()
     IF interactive
-       AND NOT dbsync_marked_as_unsync(contlist[row].contact_rec_mstat)
+       AND NOT dbsync_contact.dbsync_marked_as_unsync(contlist[row].contact_rec_mstat)
        AND contlist[row].contact_valid == "Y" THEN
        IF NOT mbox_yn(%"contacts.mess.delvalid") THEN
           LET int_flag = TRUE
@@ -511,13 +503,13 @@ PRIVATE FUNCTION remove_contact(interactive, row)
     END IF
     -- New, AddFail, UpdMiss, DelMiss and Phantom marked records can be removed directly
     IF contlist[row].contact_rec_mstat=="N"
-       OR dbsync_marked_as_unsync(contlist[row].contact_rec_mstat) THEN
+       OR dbsync_contact.dbsync_marked_as_unsync(contlist[row].contact_rec_mstat) THEN
        DELETE FROM contnote
               WHERE contnote_contact = contlist[row].contact_num
        DELETE FROM contact
               WHERE contact_num = contlist[row].contact_num
     ELSE
-       LET contlist[row].contact_rec_muser = parameters.user_id
+       LET contlist[row].contact_rec_muser = params.parameters.user_id
        LET contlist[row].contact_rec_mtime = util.Datetime.getCurrentAsUTC()
        CASE contlist[row].contact_rec_mstat
         WHEN "U1" LET contlist[row].contact_rec_mstat = "T1"
@@ -529,18 +521,18 @@ PRIVATE FUNCTION remove_contact(interactive, row)
            contact_rec_mtime = contlist[row].contact_rec_mtime,
            contact_rec_mstat = contlist[row].contact_rec_mstat
           WHERE contact_num = contlist[row].contact_num
-       IF parameters.see_all THEN
+       IF params.parameters.see_all THEN
           LET contlist[row].short_desc = get_short_desc(contlist[row].contact_num,
                                                         contlist[row].contact_rec_mstat,
                                                         contlist[row].contact_city,
                                                         contlist[row].city_desc)
-          LET contlistattr[row].short_desc = dbsync_mstat_color(contlist[row].contact_rec_mstat)
+          LET contlistattr[row].short_desc = dbsync_contact.dbsync_mstat_color(contlist[row].contact_rec_mstat)
           LET int_flag = TRUE
        END IF
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION zoom_city()
+PRIVATE FUNCTION zoom_city() RETURNS (INTEGER,VARCHAR(60))
     TYPE t_city RECORD
                num INTEGER,
                name VARCHAR(50),
@@ -579,7 +571,7 @@ PRIVATE FUNCTION zoom_city()
     RETURN r_num, r_desc
 END FUNCTION
 
-PRIVATE FUNCTION check_city()
+PRIVATE FUNCTION check_city() RETURNS (INTEGER,VARCHAR(50))
     DEFINE r_num INTEGER, r_desc VARCHAR(60)
     DEFINE name VARCHAR(60)
     LET name = curr_contact.city_desc||"%"
@@ -595,8 +587,10 @@ PRIVATE FUNCTION check_city()
     RETURN r_num, r_desc
 END FUNCTION
 
-PRIVATE FUNCTION byte_image_file_name(num, ts)
-    DEFINE num INTEGER, ts DATETIME YEAR TO FRACTION(3)
+PRIVATE FUNCTION byte_image_file_name(
+    num INTEGER,
+    ts DATETIME YEAR TO FRACTION(3)
+) RETURNS STRING
     DEFINE id, fs STRING, s INTEGER
     LET fs = os.Path.join(BFN_DIRECTORY, "photo_%1_%2")
     IF NOT os.Path.exists(BFN_DIRECTORY) THEN
@@ -610,8 +604,7 @@ PRIVATE FUNCTION byte_image_file_name(num, ts)
     RETURN libutil.bfn_get(fs, id, ts)
 END FUNCTION
 
-PRIVATE FUNCTION controw_to_contrec(row)
-    DEFINE row INT
+PRIVATE FUNCTION controw_to_contrec(row INTEGER) RETURNS ()
     LET curr_contact.contact_num        = contlist[row].contact_num
     LET curr_contact.contact_rec_muser  = contlist[row].contact_rec_muser
     LET curr_contact.contact_rec_mtime  = contlist[row].contact_rec_mtime
@@ -627,12 +620,14 @@ PRIVATE FUNCTION controw_to_contrec(row)
     LET curr_contact.contact_user       = contlist[row].contact_user
     LET curr_contact.contact_loc_lon    = contlist[row].contact_loc_lon
     LET curr_contact.contact_loc_lat    = contlist[row].contact_loc_lat
-    LET curr_contact.status_label       = dbsync_mstat_desc(curr_contact.contact_rec_mstat)
+    LET curr_contact.status_label       = dbsync_contact.dbsync_mstat_desc(curr_contact.contact_rec_mstat)
     LET curr_contact.contact_photo_file = contlist[row].contact_photo_file
 END FUNCTION
 
-PRIVATE FUNCTION contrec_to_controw(row, new)
-    DEFINE row INT, new BOOLEAN
+PRIVATE FUNCTION contrec_to_controw(
+    row INTEGER,
+    new BOOLEAN
+) RETURNS ()
     LET new = NULL -- Unused for now
     LET contlist[row].contact_num = curr_contact.contact_num
     LET contlist[row].contact_rec_muser = curr_contact.contact_rec_muser
@@ -654,11 +649,13 @@ PRIVATE FUNCTION contrec_to_controw(row, new)
                                                   contlist[row].contact_rec_mstat,
                                                   contlist[row].contact_city,
                                                   contlist[row].city_desc)
-    LET contlistattr[row].short_desc = dbsync_mstat_color(curr_contact.contact_rec_mstat)
+    LET contlistattr[row].short_desc = dbsync_contact.dbsync_mstat_color(curr_contact.contact_rec_mstat)
 END FUNCTION
 
-PRIVATE FUNCTION edit_contact(row, new)
-    DEFINE row INT, new BOOLEAN
+PRIVATE FUNCTION edit_contact(
+    row INTEGER,
+    new BOOLEAN
+) RETURNS ()
     DEFINE photo_touched BOOLEAN,
            tmp_byte BYTE
 
@@ -668,8 +665,8 @@ PRIVATE FUNCTION edit_contact(row, new)
        LET curr_contact.contact_name = "<Contact "||CURRENT HOUR TO FRACTION(3)||">"
        LET curr_contact.contact_valid = "N"
        LET curr_contact.contact_city = 1000 -- undefined
-       LET curr_contact.city_desc = v_undef_text
-       LET curr_contact.contact_user = v_undef
+       LET curr_contact.city_desc = libutil.v_undef_text
+       LET curr_contact.contact_user = libutil.v_undef
        LET curr_contact.contact_photo_file = ANONYMOUS_IMAGE_FILE
     ELSE
        CALL controw_to_contrec(row)
@@ -682,7 +679,7 @@ PRIVATE FUNCTION edit_contact(row, new)
           ATTRIBUTES(UNBUFFERED)
 
         ON ACTION notes
-           CALL edit_notes(parameters.user_id, curr_contact.contact_num)
+           CALL contnotes.edit_notes(params.parameters.user_id, curr_contact.contact_num)
 
         ON ACTION photo
            CALL contform_photo_options(DIALOG)
@@ -778,7 +775,7 @@ PRIVATE FUNCTION edit_contact(row, new)
                  END IF
                  WHENEVER ERROR STOP
                  IF sqlca.sqlcode==0 THEN
-                    LET curr_contact.status_label = dbsync_mstat_desc(curr_contact.contact_rec_mstat)
+                    LET curr_contact.status_label = dbsync_contact.dbsync_mstat_desc(curr_contact.contact_rec_mstat)
                     CALL contrec_to_controw(row, new)
                  ELSE
                     ERROR sqlca.sqlcode||":"||SQLERRMESSAGE
@@ -793,8 +790,7 @@ PRIVATE FUNCTION edit_contact(row, new)
 
 END FUNCTION
 
-PRIVATE FUNCTION get_photo(oper, d)
-    DEFINE oper STRING, d ui.Dialog
+PRIVATE FUNCTION get_photo(oper STRING, d ui.Dialog) RETURNS ()
     DEFINE fe_path, vm_path STRING
     CALL ui.Interface.frontCall("mobile",oper,[],fe_path)
     IF fe_path IS NOT NULL THEN
@@ -809,8 +805,7 @@ PRIVATE FUNCTION get_photo(oper, d)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION contform_photo_options(d)
-    DEFINE d ui.Dialog
+PRIVATE FUNCTION contform_photo_options(d ui.Dialog) RETURNS ()
     MENU %"contacts.contform_options_menu.title"
             ATTRIBUTES(STYLE="popup")
         COMMAND %"contacts.contform_options_menu.take_photo"
@@ -825,12 +820,14 @@ PRIVATE FUNCTION contform_photo_options(d)
     END MENU
 END FUNCTION
 
-PRIVATE FUNCTION contform_options(d, row)
-    DEFINE d ui.Dialog, row INTEGER
+PRIVATE FUNCTION contform_options(
+    d ui.Dialog,
+    row INTEGER
+) RETURNS ()
     MENU %"contacts.contform_options_menu.title"
             ATTRIBUTES(STYLE="popup")
         BEFORE MENU
-           IF NOT dbsync_marked_for_deletion(curr_contact.contact_rec_mstat) THEN
+           IF NOT dbsync_contact.dbsync_marked_for_deletion(curr_contact.contact_rec_mstat) THEN
               HIDE OPTION %"contacts.contform_options_menu.undelete"
            END IF
         COMMAND %"contacts.contform_options_menu.undelete"
@@ -844,8 +841,7 @@ PRIVATE FUNCTION contform_options(d, row)
     END MENU
 END FUNCTION
 
-PRIVATE FUNCTION contact_undelete(d)
-    DEFINE d ui.Dialog
+PRIVATE FUNCTION contact_undelete(d ui.Dialog) RETURNS ()
     IF NOT mbox_yn(%"contform.mess.undelete") THEN RETURN END IF
     CASE curr_contact.contact_rec_mstat
          WHEN "T1" LET curr_contact.contact_rec_mstat = "U1"
@@ -854,11 +850,10 @@ PRIVATE FUNCTION contact_undelete(d)
          OTHERWISE CALL mbox_ok("Invalid undelete mode") EXIT PROGRAM 1
     END CASE
     CALL d.setFieldTouched("contact_rec_mstat",TRUE)
-    LET curr_contact.status_label = dbsync_mstat_desc(curr_contact.contact_rec_mstat)
+    LET curr_contact.status_label = dbsync_contact.dbsync_mstat_desc(curr_contact.contact_rec_mstat)
 END FUNCTION
 
-PRIVATE FUNCTION contact_lookup_for_num(num)
-    DEFINE num INTEGER
+PRIVATE FUNCTION contact_lookup_for_num(num INTEGER) RETURNS INTEGER
     DEFINE i INTEGER
     FOR i=1 TO contlist.getLength()
         IF contlist[i].contact_num == num THEN
@@ -868,8 +863,7 @@ PRIVATE FUNCTION contact_lookup_for_num(num)
     RETURN 0
 END FUNCTION
 
-PRIVATE FUNCTION contact_lookup_for_user(uid)
-    DEFINE uid t_user_id
+PRIVATE FUNCTION contact_lookup_for_user(uid libutil.t_user_id) RETURNS INTEGER
     DEFINE i INTEGER
     FOR i=1 TO contlist.getLength()
         IF contlist[i].contact_user == uid THEN
@@ -879,21 +873,20 @@ PRIVATE FUNCTION contact_lookup_for_user(uid)
     RETURN 0
 END FUNCTION
 
-PRIVATE FUNCTION bind_user(row)
-    DEFINE row INTEGER
+PRIVATE FUNCTION bind_user(row INTEGER) RETURNS ()
     DEFINE r, i INTEGER, msg STRING, old_cnum INTEGER
     IF NOT mbox_yn(%"contform.mess.bind_user") THEN RETURN END IF
-    CALL dbsync_contacts_set_sync_url( params_cdb_url() )
-    CALL dbsync_contacts_set_sync_format( parameters.cdb_format )
-    CALL dbsync_bind_user( parameters.user_id, parameters.user_auth, curr_contact.contact_num )
+    CALL dbsync_contact.dbsync_contacts_set_sync_url( params.params_cdb_url() )
+    CALL dbsync_contact.dbsync_contacts_set_sync_format( params.parameters.cdb_format )
+    CALL dbsync_contact.dbsync_bind_user( params.parameters.user_id, params.parameters.user_auth, curr_contact.contact_num )
          RETURNING r, msg, old_cnum
     IF r == 0 THEN
        CALL mbox_ok(%"contacts.mess.busucc")
-       LET curr_contact.contact_user = parameters.user_id
-       LET contlist[row].contact_user = parameters.user_id
+       LET curr_contact.contact_user = params.parameters.user_id
+       LET contlist[row].contact_user = params.parameters.user_id
        LET i = contact_lookup_for_num(old_cnum)
        IF i > 0 THEN
-          LET contlist[i].contact_user = v_undef
+          LET contlist[i].contact_user = libutil.v_undef
           LET contlist[i].contact_loc_lon = NULL
           LET contlist[i].contact_loc_lat = NULL
        END IF
@@ -906,14 +899,13 @@ END FUNCTION
 -- Can be called by ON IDLE!
 -- Sends command to server to udpate the central db.
 -- DECIMAL(10,6): 6 decimal places = 0.11 m precision.
-PRIVATE FUNCTION update_geoloc_for_user(forced)
-    DEFINE forced BOOLEAN
+PRIVATE FUNCTION update_geoloc_for_user(forced BOOLEAN) RETURNS ()
     DEFINE status STRING, lat, lon DECIMAL(10,6)
     DEFINE i INTEGER, r INTEGER, msg STRING
     CONSTANT f = "----&.&&&&&"
-    LET i = contact_lookup_for_user(parameters.user_id)
+    LET i = contact_lookup_for_user(params.parameters.user_id)
     IF i <= 0 THEN RETURN END IF
-    IF NOT forced AND parameters.sync_geoloc=="N" THEN RETURN END IF
+    IF NOT forced AND params.parameters.sync_geoloc=="N" THEN RETURN END IF
     TRY
        CALL ui.Interface.frontCall("mobile", "getGeolocation", [], [status, lat, lon] )
     CATCH
@@ -924,9 +916,9 @@ PRIVATE FUNCTION update_geoloc_for_user(forced)
        AND (contlist[i].contact_loc_lat USING f) == (lat USING f) THEN
            RETURN
        END IF
-       CALL dbsync_contacts_set_sync_url( params_cdb_url() )
-       CALL dbsync_contacts_set_sync_format( parameters.cdb_format )
-       CALL dbsync_update_geoloc( parameters.user_id, parameters.user_auth, lon, lat )
+       CALL dbsync_contact.dbsync_contacts_set_sync_url( params.params_cdb_url() )
+       CALL dbsync_contact.dbsync_contacts_set_sync_format( params.parameters.cdb_format )
+       CALL dbsync_contact.dbsync_update_geoloc( params.parameters.user_id, params.parameters.user_auth, lon, lat )
             RETURNING r, msg
        IF r==0 THEN
           LET contlist[i].contact_loc_lon = lon
@@ -939,7 +931,7 @@ PRIVATE FUNCTION update_geoloc_for_user(forced)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION show_map()
+PRIVATE FUNCTION show_map() RETURNS ()
     DEFINE map_url STRING,
            zoom INTEGER,
            type CHAR(1),
@@ -998,18 +990,17 @@ PRIVATE FUNCTION show_map()
 
 END FUNCTION
 
-PRIVATE FUNCTION contact_lookup_list(cnum)
-    DEFINE cnum INTEGER
+PRIVATE FUNCTION contact_lookup_list(cnum INTEGER) RETURNS INTEGER
     DEFINE arr DYNAMIC ARRAY OF RECORD
                num INTEGER,
                name STRING,
                desc STRING
            END RECORD,
            i, i2, x, u INTEGER
-    LET u = contact_lookup_for_user(parameters.user_id)
+    LET u = contact_lookup_for_user(params.parameters.user_id)
     LET i2 = 0
     FOR i=1 TO contlist.getLength()
-        IF i!=u AND NOT dbsync_marked_for_garbage(contlist[i].contact_rec_mstat) THEN
+        IF i!=u AND NOT dbsync_contact.dbsync_marked_for_garbage(contlist[i].contact_rec_mstat) THEN
            LET i2=i2+1
            LET arr[i2].num = contlist[i].contact_num
            LET arr[i2].name = contlist[i].contact_name
@@ -1031,8 +1022,11 @@ PRIVATE FUNCTION contact_lookup_list(cnum)
     RETURN x
 END FUNCTION
 
-PRIVATE FUNCTION build_map_url(type,cnum,zoom)
-    DEFINE type CHAR(1), cnum, zoom INTEGER
+PRIVATE FUNCTION build_map_url(
+    type CHAR(1),
+    cnum INTEGER,
+    zoom INTEGER
+) RETURNS STRING
     DEFINE url, base, m_user, m_all, m_curr STRING,
            tmp, size STRING,
            x_lat, x_lon DECIMAL(10,6),
@@ -1046,7 +1040,7 @@ PRIVATE FUNCTION build_map_url(type,cnum,zoom)
        LET size = "400x400"
     END IF
 
-    LET x = contact_lookup_for_user(parameters.user_id)
+    LET x = contact_lookup_for_user(params.parameters.user_id)
     IF x==0 THEN RETURN NULL END IF
     LET x_lat = contlist[x].contact_loc_lat
     LET x_lon = contlist[x].contact_loc_lon
@@ -1095,11 +1089,15 @@ PRIVATE FUNCTION build_map_url(type,cnum,zoom)
 
 END FUNCTION
 
-PRIVATE FUNCTION get_short_desc(contact_num,mstat,city_num,city_desc)
-    DEFINE contact_num INT, mstat CHAR(2), city_num INT, city_desc STRING
+PRIVATE FUNCTION get_short_desc(
+    contact_num INTEGER,
+    mstat CHAR(2),
+    city_num INTEGER,
+    city_desc STRING
+) RETURNS STRING
     DEFINE val STRING
     IF mstat != "S" THEN
-       LET val = dbsync_mstat_desc(mstat)
+       LET val = dbsync_contact.dbsync_mstat_desc(mstat)
     ELSE
        IF city_num != 1000 THEN
           LET val=city_desc
@@ -1108,7 +1106,7 @@ PRIVATE FUNCTION get_short_desc(contact_num,mstat,city_num,city_desc)
     RETURN SFMT("(%1) %2",contact_num, val)
 END FUNCTION
 
-PRIVATE FUNCTION load_contacts()
+PRIVATE FUNCTION load_contacts() RETURNS ()
     DEFINE row INTEGER
     DEFINE tmp_byte BYTE
     CALL contlist.clear()
@@ -1163,8 +1161,8 @@ PRIVATE FUNCTION load_contacts()
         END IF
         LET contlist[row].short_desc = contlist[row].city_desc
 
-        IF parameters.see_all OR
-           (NOT dbsync_marked_for_deletion(contlist[row].contact_rec_mstat)) THEN
+        IF params.parameters.see_all OR
+           (NOT dbsync_contact.dbsync_marked_for_deletion(contlist[row].contact_rec_mstat)) THEN
 
            LET contlist[row].short_desc =
                get_short_desc(contlist[row].contact_num,
@@ -1172,7 +1170,7 @@ PRIVATE FUNCTION load_contacts()
                               contlist[row].contact_city,
                               contlist[row].city_desc)
 
-           LET contlistattr[row].short_desc = dbsync_mstat_color(contlist[row].contact_rec_mstat)
+           LET contlistattr[row].short_desc = dbsync_contact.dbsync_mstat_color(contlist[row].contact_rec_mstat)
 
            IF length(tmp_byte) == 0 THEN
               LET contlist[row].contact_photo_file = ANONYMOUS_IMAGE_FILE
@@ -1192,10 +1190,11 @@ PRIVATE FUNCTION load_contacts()
     FREE c_load_contacts
 END FUNCTION
 
-PRIVATE FUNCTION get_aui_node(p, tagname, name)
-    DEFINE p om.DomNode,
-           tagname STRING,
-           name STRING
+PRIVATE FUNCTION get_aui_node(
+    p om.DomNode,
+    tagname STRING,
+    name STRING
+) RETURNS om.DomNode
     DEFINE nl om.NodeList
     IF name IS NOT NULL THEN
        LET nl = p.selectByPath(SFMT("//%1[@name=\"%2\"]",tagname,name))
@@ -1209,9 +1208,10 @@ PRIVATE FUNCTION get_aui_node(p, tagname, name)
     END IF
 END FUNCTION
 
-PRIVATE FUNCTION add_style(pn, name)
-    DEFINE pn om.DomNode,
-           name STRING
+PRIVATE FUNCTION add_style(
+    pn om.DomNode,
+    name STRING
+) RETURNS om.DomNode
     DEFINE nn om.DomNode
     LET nn = get_aui_node(pn, "Style", name)
     IF nn IS NOT NULL THEN RETURN NULL END IF
@@ -1220,10 +1220,11 @@ PRIVATE FUNCTION add_style(pn, name)
     RETURN nn
 END FUNCTION
 
-PRIVATE FUNCTION set_style_attribute(pn, name, value)
-    DEFINE pn om.DomNode,
-           name STRING,
-           value STRING
+PRIVATE FUNCTION set_style_attribute(
+    pn om.DomNode,
+    name STRING,
+    value STRING
+) RETURNS ()
     DEFINE sa om.DomNode
     LET sa = get_aui_node(pn, "StyleAttribute", name)
     IF sa IS NULL THEN
@@ -1233,7 +1234,7 @@ PRIVATE FUNCTION set_style_attribute(pn, name, value)
     CALL sa.setAttribute("value", value)
 END FUNCTION
 
-PRIVATE FUNCTION add_presentation_styles()
+PRIVATE FUNCTION add_presentation_styles() RETURNS ()
     DEFINE rn om.DomNode,
            sl om.DomNode,
            nn om.DomNode
