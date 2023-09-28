@@ -37,12 +37,8 @@ OTHERS=\
 
 all:: $(FORMS) $(MODULES) $(MAIN)
 
-BUILDDIR=$(TOP)/build
-$(BUILDDIR):
-	$(MKDIR) $(BUILDDIR)
-
-APPDIR=$(BUILDDIR)/appdir
-$(APPDIR): $(BUILDDIR)
+APPDIR=/tmp/appdir_contacts
+$(APPDIR):
 	$(MKDIR) $(APPDIR)
 
 appdir:: all $(APPDIR)

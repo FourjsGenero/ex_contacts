@@ -21,9 +21,11 @@ not interface with the integrated contacts list of the mobile device.
 ### Prerequisites
 
 * Genero BDL 4.01+
-* Database server: Tested with Informix 14.10 and PostgreSQL 13.
-* Genero Mobile (GMI/GMA) >= 4.01
 * GNU make utility or Genero Studio 4.01+
+* Genero Application Server (GAS) 4.01+
+* Database server: Informix 14.10+ or PostgreSQL 13+
+* Genero Mobile for Android (GMA) 4.01.06+
+* Genero Mobile for iOS (GMI) 4.01.04+
 
 ### Components
 

@@ -23,7 +23,7 @@ mkdir -p $TOP/build/gmi
 
 gmibuildtool \
    --app-name "Contacts" \
-   --app-version "v3.1" \
+   --app-version "v3.2" \
    --output $TOP/build/contacts.ipa \
    --program-files $TOP/build/appdir \
    --icons resources/ios/icons \

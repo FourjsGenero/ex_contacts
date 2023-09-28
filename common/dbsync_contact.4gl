@@ -298,9 +298,10 @@ PRIVATE FUNCTION do_bind_user(
     last_mtime DATETIME YEAR TO FRACTION(3),
     curr_mtime DATETIME YEAR TO FRACTION(3),
     events t_dbsync_event_array
-) RETURNS INTEGER
-    DEFINE old_cnum INTEGER, status STRING
-    LET status = "success"
+) RETURNS STRING
+    DEFINE old_cnum INTEGER
+    DEFINE s STRING
+    LET s = "success"
     WHENEVER ERROR CONTINUE
     SELECT contact_num INTO old_cnum
       FROM contact WHERE contact_user = uid
@@ -329,11 +330,11 @@ PRIVATE FUNCTION do_bind_user(
           AND contact_rec_mtime <= last_mtime
           AND contact_user = libutil.v_undef -- Do not overwrite another user id!
        IF sqlca.sqlcode!=0 OR sqlca.sqlerrd[3]!=1 THEN
-          LET status = "bind_user_failed"
+          LET s = "bind_user_failed"
        END IF
     END IF
     WHENEVER ERROR STOP
-    RETURN status
+    RETURN s
 END FUNCTION
 
 PRIVATE FUNCTION get_contact_geoloc(
@@ -401,9 +402,10 @@ PRIVATE FUNCTION do_update_geoloc(
     uid libutil.t_user_id,
     ps STRING,
     curr_mtime DATETIME YEAR TO FRACTION(3)
-) RETURNS INTEGER
-    DEFINE pos t_geoloc_position, status STRING
-    LET status = "success"
+) RETURNS STRING
+    DEFINE pos t_geoloc_position,
+           s STRING
+    LET s = "success"
     CALL util.JSON.parse(ps, pos)
     WHENEVER ERROR CONTINUE
     UPDATE contact
@@ -412,10 +414,10 @@ PRIVATE FUNCTION do_update_geoloc(
            contact_loc_lat = pos.latitude
      WHERE contact_user = uid
     IF sqlca.sqlcode!=0 OR sqlca.sqlerrd[3]!=1 THEN
-       LET status = "update_geoloc_failed"
+       LET s = "update_geoloc_failed"
     END IF
     WHENEVER ERROR STOP
-    RETURN status
+    RETURN s
 END FUNCTION
 
 PUBLIC FUNCTION dbsync_sync_contacts_send(

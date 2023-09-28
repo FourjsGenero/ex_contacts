@@ -916,6 +916,7 @@ PRIVATE FUNCTION update_geoloc_for_user(forced BOOLEAN) RETURNS ()
        AND (contlist[i].contact_loc_lat USING f) == (lat USING f) THEN
            RETURN
        END IF
+       ERROR SFMT("Sending new geolocation: lon=%1 lat=%2", lon, lat)
        CALL dbsync_contact.dbsync_contacts_set_sync_url( params.params_cdb_url() )
        CALL dbsync_contact.dbsync_contacts_set_sync_format( params.parameters.cdb_format )
        CALL dbsync_contact.dbsync_update_geoloc( params.parameters.user_id, params.parameters.user_auth, lon, lat )
