@@ -258,7 +258,7 @@ $ make package_gma
 or
 
 ```
-$ sh build_gma.sh 
+$ sh build_gma.sh
 ```
 
 See shell for required settings and generated APK.
@@ -353,7 +353,7 @@ address of the host machine where the dbsync server runs is:
 
 ```
 10.0.2.2     Special alias to your host loopback interface
-                (i.e., 127.0.0.1 on your development machine) 
+                (i.e., 127.0.0.1 on your development machine)
 ```
 
 This is the address you should enter in the "Host" field in the contacts
